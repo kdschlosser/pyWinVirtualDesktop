@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-
+from __future__ import print_function
 import sys
 import comtypes
 import ctypes
@@ -9,14 +9,29 @@ from ctypes import POINTER
 from .winuser import EnumWindows, IsWindow, GetWindowText, GetProcessName
 from .servprov import IServiceProvider, CLSID_ImmersiveShell
 from .shobjidl_core import (
+    CLSID_VirtualDesktopNotificationService,
+    IID_IVirtualDesktopNotificationService,
+    IVirtualDesktopNotificationService,
+
     CLSID_VirtualDesktopManagerInternal,
     IID_IVirtualDesktopManagerInternal,
     IVirtualDesktopManagerInternal,
+
+    CLSID_VirtualDesktopPinnedApps,
+    IID_IVirtualDesktopPinnedApps,
+    IVirtualDesktopPinnedApps,
+
+    CLSID_VirtualDesktopManager,
+    IID_IVirtualDesktopManager,
     IVirtualDesktopManager,
+
     IID_IVirtualDesktop,
     IVirtualDesktop,
+    IVirtualDesktopNotification,
     AdjacentDesktop
 )
+
+from .windows_ui_viewmanagement import IApplicationViewCollection
 
 
 class Module(object):
@@ -42,9 +57,37 @@ class Module(object):
             ctypes.POINTER(IVirtualDesktopManagerInternal)
         )
 
-        self.__pDesktopManager = self.__pServiceProvider.QueryInterface(
-            IVirtualDesktopManager
+        self.__pDesktopManager = comtypes.cast(
+            self.__pServiceProvider.QueryService(
+                CLSID_VirtualDesktopManager,
+                IID_IVirtualDesktopManager
+            ),
+            ctypes.POINTER(IVirtualDesktopManager)
         )
+        self.__pNotificationService = comtypes.cast(
+            self.__pServiceProvider.QueryService(
+                CLSID_VirtualDesktopNotificationService,
+                IID_IVirtualDesktopNotificationService
+            ),
+            ctypes.POINTER(IVirtualDesktopNotificationService)
+        )
+        self.__pPinnedApps = comtypes.cast(
+            self.__pServiceProvider.QueryService(
+                CLSID_VirtualDesktopPinnedApps,
+                IID_IVirtualDesktopPinnedApps
+            ),
+            ctypes.POINTER(IVirtualDesktopPinnedApps)
+        )
+        self.__pViewCollection = self.__pServiceProvider.QueryInterface(
+            IApplicationViewCollection
+        )
+
+        self.DesktopNotificationCallback = (
+            DesktopNotificationCallback
+        )
+
+        self.Desktop = Desktop
+        self.Window = Window
 
     @property
     def desktop_ids(self):
@@ -68,6 +111,29 @@ class Module(object):
             self.__pDesktopManager,
             ppNewDesktop.GetId()
         )
+
+    def register_notification_callback(self, callback):
+
+        try:
+            if issubclass(callback, DesktopNotificationCallback):
+                callback = callback()
+        except TypeError:
+            if not isinstance(callback, DesktopNotificationCallback):
+                raise RuntimeError(
+                    'callback needs to be an instance or a subclass of '
+                    'VirtualDesktopNotificationCallback'
+                )
+
+        cls = VirtualDesktopNotification(
+            self.__pDesktopManagerInternal,
+            self.__pDesktopManager,
+            callback
+        )
+
+        return self.__pNotificationService.Register(cls)
+
+    def unregister_notification_callback(self, cookie):
+        self.__pNotificationService.Unregister(cookie)
 
     def __iter__(self):
         for id in self.desktop_ids:
@@ -182,7 +248,11 @@ class Desktop(object):
             AdjacentDesktop.LeftDirection
         )
 
-        return Desktop(self.__pDesktopManagerInternal, neighbor.GetId())
+        return Desktop(
+            self.__pDesktopManagerInternal,
+            self.__pDesktopManager,
+            neighbor.GetId()
+        )
 
     @property
     def desktop_to_right(self):
@@ -264,6 +334,162 @@ class Desktop(object):
                 pView,
                 pDesktop
             )
+
+
+class DesktopNotificationCallback(object):
+
+    def change(self, old, new):
+        print(
+            'You need to override the '
+            'VirtualDesktopNotificationCallback.change method to '
+            'not see this message.'
+        )
+        print('OLD:', old.id)
+        print('NEW:', new.id)
+
+    def create(self, new):
+        print(
+            'You need to override the '
+            'VirtualDesktopNotificationCallback.create method to '
+            'not see this message.'
+        )
+        print('NEW:', new.id)
+
+    def destroy_begin(self, destroyed, fallback):
+        print(
+            'You need to override the '
+            'VirtualDesktopNotificationCallback.destroy_begin method to '
+            'not see this message.'
+        )
+        print('DESTROYED:', destroyed.id)
+        print('FALLBACK:', fallback.id)
+
+    def destroy_failed(self, destroyed, fallback):
+        print(
+            'You need to override the '
+            'VirtualDesktopNotificationCallback.destroy_failed method to '
+            'not see this message.'
+        )
+        print('DESTROYED:', destroyed.id)
+        print('FALLBACK:', fallback.id)
+
+    def destroy(self, destroyed, fallback):
+        print(
+            'You need to override the '
+            'VirtualDesktopNotificationCallback.destroyed method to '
+            'not see this message.'
+        )
+        print('DESTROYED:', destroyed.id)
+        print('FALLBACK:', fallback.id)
+
+    def view_changed(self, view):
+        pass
+
+
+S_OK = 0x00000000
+
+
+class VirtualDesktopNotification(comtypes.COMObject):
+    _com_interfaces_ = [IVirtualDesktopNotification]
+
+    def __init__(self, pDesktopManagerInternal, pDesktopManager, callback):
+        self.__pDesktopManagerInternal = pDesktopManagerInternal
+        self.__pDesktopManager = pDesktopManager
+        self.__callback = callback
+        comtypes.COMObject.__init__(self)
+
+    def CurrentVirtualDesktopChanged(self, pDesktopOld, pDesktopNew):
+        desktop_old = Desktop(
+            self.__pDesktopManagerInternal,
+            self.__pDesktopManager,
+            pDesktopOld.GetId()
+        )
+
+        desktop_new = Desktop(
+            self.__pDesktopManagerInternal,
+            self.__pDesktopManager,
+            pDesktopNew.GetId()
+        )
+
+        self.__callback.change(desktop_old, desktop_new)
+
+        return S_OK
+
+    def VirtualDesktopCreated(self, pDesktop):
+        desktop = Desktop(
+            self.__pDesktopManagerInternal,
+            self.__pDesktopManager,
+            pDesktop.GetId()
+        )
+
+        self.__callback.create(desktop)
+
+        return S_OK
+
+    def VirtualDesktopDestroyBegin(self, pDesktopDestroyed, pDesktopFallback):
+        desktop_destroyed = Desktop(
+            self.__pDesktopManagerInternal,
+            self.__pDesktopManager,
+            pDesktopDestroyed.GetId()
+        )
+
+        desktop_fallback = Desktop(
+            self.__pDesktopManagerInternal,
+            self.__pDesktopManager,
+            pDesktopFallback.GetId()
+        )
+
+        self.__callback.destroy_begin(
+            desktop_destroyed,
+            desktop_fallback
+        )
+
+        return S_OK
+
+    def VirtualDesktopDestroyFailed(self, pDesktopDestroyed, pDesktopFallback):
+        desktop_destroyed = Desktop(
+            self.__pDesktopManagerInternal,
+            self.__pDesktopManager,
+            pDesktopDestroyed.GetId()
+        )
+
+        desktop_fallback = Desktop(
+            self.__pDesktopManagerInternal,
+            self.__pDesktopManager,
+            pDesktopFallback.GetId()
+        )
+
+        self.__callback.destroy_failed(
+            desktop_destroyed,
+            desktop_fallback
+        )
+
+        return S_OK
+
+    def VirtualDesktopDestroyed(self, pDesktopDestroyed, pDesktopFallback):
+        desktop_destroyed = Desktop(
+            self.__pDesktopManagerInternal,
+            self.__pDesktopManager,
+            pDesktopDestroyed.GetId()
+        )
+
+        desktop_fallback = Desktop(
+            self.__pDesktopManagerInternal,
+            self.__pDesktopManager,
+            pDesktopFallback.GetId()
+        )
+
+        self.__callback.destroy(
+            desktop_destroyed,
+            desktop_fallback
+        )
+
+        return S_OK
+
+    def ViewVirtualDesktopChanged(self, pView):
+        return S_OK
+
+
 
 
 desktop_ids = Module.desktop_ids
