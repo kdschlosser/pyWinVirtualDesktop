@@ -1,7 +1,6 @@
 # pyWinVirtualDesktop
 Windows 10 Virtual Desktop Management
 
-
 ## *Just Added*
 
 * callback notifications
@@ -11,6 +10,23 @@ Windows 10 Virtual Desktop Management
 * comtypes
 * six
 
+<br></br>
+
+## Installation
+
+### *Install*
+
+```
+python setup.py install
+```
+
+### *Build*
+
+```
+python setup.py build
+```
+
+<br></br>
 
 ## Basic Use
 
@@ -36,6 +52,7 @@ for desktop in pyWinVirtualDesktop:
         print('\n')
 ```
 
+<br></br>
 
 ## Properties/Methods
 
@@ -82,6 +99,7 @@ for desktop in pyWinVirtualDesktop:
     * move_to_desktop(desktop): move the window to a new desktop. desktop can be either the desktop id or a Desktop instance
 
 
+<br></br>
 
 ## Callback Notifications
 
