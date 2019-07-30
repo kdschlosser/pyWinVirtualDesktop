@@ -125,14 +125,6 @@ class Module(object):
             ),
             ctypes.POINTER(IVirtualDesktopManagerInternal)
         )
-
-        self.__pDesktopManager = comtypes.cast(
-            self.__pServiceProvider.QueryService(
-                CLSID_VirtualDesktopManager,
-                IID_IVirtualDesktopManager
-            ),
-            ctypes.POINTER(IVirtualDesktopManager)
-        )
         self.__pNotificationService = comtypes.cast(
             self.__pServiceProvider.QueryService(
                 CLSID_VirtualDesktopNotificationService,
@@ -151,20 +143,28 @@ class Module(object):
             IApplicationViewCollection
         )
 
-        pObjectArray = self.__pViewCollection.GetViews()
-
-        for i in range(pObjectArray.GetCount()):
-            ppView = comtypes.cast(
-                pObjectArray.GetAt(i, IID_IApplicationView9),
-                POINTER(IApplicationView9)
-            )
-
-        ppView = comtypes.cast(
-            self.__pViewCollection.GetViewForHwnd(hwnd),
-            POINTER(IApplicationView9)
+        self.__pDesktopManager = comtypes.cast(
+            self.__pServiceProvider.QueryInterface(
+                IID_IVirtualDesktopManager
+            ),
+            ctypes.POINTER(IVirtualDesktopManager)
         )
 
-        self.__pViewCollection.RefreshCollection()
+
+        # pObjectArray = self.__pViewCollection.GetViews()
+
+        # for i in range(pObjectArray.GetCount()):
+        #     ppView = comtypes.cast(
+        #         pObjectArray.GetAt(i, IID_IApplicationView9),
+        #         POINTER(IApplicationView9)
+        #     )
+        #
+        # ppView = comtypes.cast(
+        #     self.__pViewCollection.GetViewForHwnd(hwnd),
+        #     POINTER(IApplicationView9)
+        # )
+
+        # self.__pViewCollection.RefreshCollection()
 
         self.DesktopNotificationCallback = (
             DesktopNotificationCallback
