@@ -141,21 +141,16 @@ class Module(object):
             ctypes.POINTER(IVirtualDesktopPinnedApps)
         )
 
-        self.__pViewCollection = comtypes.cast(
-            self.__pServiceProvider.RemoteQueryService(
-                IID_IApplicationViewCollection
-            ),
-            POINTER(IApplicationViewCollection)
-        )
-        
-        self.__pDesktopManager = comtypes.cast(
-            self.__pServiceProvider.RemoteQueryService(
-                IID_IVirtualDesktopManager
-            ),
-            POINTER(IVirtualDesktopManager)
+        self.__pDesktopManager = comtypes.CoCreateInstance(
+            CLSID_VirtualDesktopManager,
+            IVirtualDesktopManager,
+            comtypes.CLSCTX_LOCAL_SERVER,
         )
 
-
+        self.__pViewCollection = self.__pPinnedApps.QueryInterface(
+            IApplicationViewCollection,
+            IID_IApplicationViewCollection,
+        )
 
         # pObjectArray = self.__pViewCollection.GetViews()
 
@@ -185,9 +180,11 @@ class Module(object):
         pObjectArray = self.__pDesktopManagerInternal.GetDesktops()
 
         for i in range(pObjectArray.GetCount()):
-            pDesktop = comtypes.cast(
-                pObjectArray.GetAt(i, IID_IVirtualDesktop),
-                POINTER(IVirtualDesktop)
+            pDesktop = ctypes.POINTER(IVirtualDesktop)()
+            pObjectArray.GetAt(
+                i,
+                IID_IVirtualDesktop,
+                ctypes.byref(pDesktop)
             )
 
             id = pDesktop.GetID()
