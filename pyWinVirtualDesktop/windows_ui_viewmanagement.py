@@ -226,11 +226,47 @@ class IApplicationViewTitleBar(IInspectable):
         ),
         COMMETHOD(
             [helpstring(
+                'Sets the color of the title bar '
+                'foreground when it\'s inactive.'
+            )],
+            HRESULT,
+            'put_InactiveForegroundColor',
+            (['in'], POINTER(CColor), 'value'),
+        ),
+        COMMETHOD(
+            [helpstring(
+                'Gets the color of the title bar '
+                'foreground when it\'s inactive.'
+            )],
+            HRESULT,
+            'get_InactiveForegroundColor',
+            (['retval', 'out'], POINTER(POINTER(CColor)), 'value'),
+        ),
+        COMMETHOD(
+            [helpstring(
+                'Sets the color of the title bar '
+                'background when it\'s inactive.'
+            )],
+            HRESULT,
+            'put_InactiveBackgroundColor',
+            (['in'], POINTER(CColor), 'value'),
+        ),
+        COMMETHOD(
+            [helpstring(
+                'Gets the color of the title bar '
+                'background when it\'s inactive.'
+            )],
+            HRESULT,
+            'get_InactiveBackgroundColor',
+            (['retval', 'out'], POINTER(POINTER(CColor)), 'value'),
+        ),
+        COMMETHOD(
+            [helpstring(
                 'Sets the foreground color of a title '
                 'bar button when it\'s inactive.'
             )],
             HRESULT,
-            'put_InactiveForegroundColor',
+            'put_ButtonInactiveForegroundColor',
             (['in'], POINTER(CColor), 'value'),
         ),
         COMMETHOD(
@@ -239,50 +275,14 @@ class IApplicationViewTitleBar(IInspectable):
                 'bar button when it\'s inactive.'
             )],
             HRESULT,
-            'get_InactiveForegroundColor',
-            (['retval', 'out'], POINTER(POINTER(CColor)), 'value'),
-        ),
-        COMMETHOD(
-            [helpstring(
-                'Sets the background color of a title '
-                'bar button when it\'s inactive.'
-            )],
-            HRESULT,
-            'put_InactiveBackgroundColor',
-            (['in'], POINTER(CColor), 'value'),
-        ),
-        COMMETHOD(
-            [helpstring(
-                'Gets the background color of a title '
-                'bar button when it\'s inactive.'
-            )],
-            HRESULT,
-            'get_InactiveBackgroundColor',
-            (['retval', 'out'], POINTER(POINTER(CColor)), 'value'),
-        ),
-        COMMETHOD(
-            [helpstring(
-                'Sets the color of the title bar '
-                'foreground when it\'s inactive.'
-            )],
-            HRESULT,
-            'put_ButtonInactiveForegroundColor',
-            (['in'], POINTER(CColor), 'value'),
-        ),
-        COMMETHOD(
-            [helpstring(
-                'Gets the color of the title bar '
-                'foreground when it\'s inactive.'
-            )],
-            HRESULT,
             'get_ButtonInactiveForegroundColor',
             (['retval', 'out'], POINTER(POINTER(CColor)), 'value'),
         ),
 
         COMMETHOD(
             [helpstring(
-                'Sets the color of the title bar '
-                'background when it\'s inactive.'
+                'Sets the background color of a title '
+                'bar button when it\'s inactive.'
             )],
             HRESULT,
             'put_ButtonInactiveBackgroundColor',
@@ -290,8 +290,8 @@ class IApplicationViewTitleBar(IInspectable):
         ),
         COMMETHOD(
             [helpstring(
-                'Gets the color of the title bar '
-                'background when it\'s inactive.'
+                'Gets the background color of a title '
+                'bar button when it\'s inactive.'
             )],
             HRESULT,
             'get_ButtonInactiveBackgroundColor',

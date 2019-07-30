@@ -50,6 +50,6 @@ class IObjectArray(comtypes.IUnknown):
             'GetAt',
             (['in'], UINT, 'uiIndex'),
             (['in'], REFIID, 'riid'),
-            (['in'], POINTER(LPVOID), 'ppv'),
+            (['out', 'iid_is(riid)'], POINTER(LPVOID), 'ppv'),
         ),
     ]

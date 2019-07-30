@@ -31,8 +31,77 @@ from .shobjidl_core import (
     AdjacentDesktop
 )
 
-from .windows_ui_viewmanagement import IApplicationViewCollection
+from .windows_ui_viewmanagement import (
+    IApplicationViewCollection,
+    IApplicationView9,
+    IID_IApplicationView9,
+    ApplicationViewOrientation,
+    ApplicationViewBoundsMode,
+    FullScreenSystemOverlayMode,
+    ApplicationViewMode,
+    ViewSizePreference
+)
 
+
+#
+# ApplicationViewOrientation.ApplicationViewOrientation_Landscape
+# ApplicationViewOrientation.ApplicationViewOrientation_Portrait
+# ApplicationViewBoundsMode.ApplicationViewBoundsMode_UseVisible
+# ApplicationViewBoundsMode.ApplicationViewBoundsMode_UseCoreWindow
+# FullScreenSystemOverlayMode.FullScreenSystemOverlayMode_Standard
+# FullScreenSystemOverlayMode.FullScreenSystemOverlayMode_Minimal
+# ApplicationViewMode.ApplicationViewMode_Default
+# ApplicationViewMode.ApplicationViewMode_CompactOverlay
+# ViewSizePreference.ViewSizePreference_Default
+# ViewSizePreference.ViewSizePreference_UseLess
+# ViewSizePreference.ViewSizePreference_UseHalf
+# ViewSizePreference.ViewSizePreference_UseMore
+# ViewSizePreference.ViewSizePreference_UseMinimum
+# ViewSizePreference.ViewSizePreference_UseNone
+#
+#
+# bool = get_SuppressSystemOverlays()
+# put_SuppressSystemOverlays(bool)
+# Rect = get_VisibleBounds()
+# cookie = add_VisibleBoundsChanged(IInspectable)
+# remove_VisibleBoundsChanged(cookie)
+# bool = SetDesiredBoundsMode(ApplicationViewBoundsMode)
+# ApplicationViewBoundsMode = get_DesiredBoundsMode()
+# IApplicationViewTitleBar = get_TitleBar()
+# FullScreenSystemOverlayMode = get_FullScreenSystemOverlayMode()
+# put_FullScreenSystemOverlayMode(FullScreenSystemOverlayMode)
+# bool = get_IsFullScreenMode()
+# bool = TryEnterFullScreenMode()
+# ExitFullScreenMode() # if in fullscreen mode
+# ShowStandardSystemOverlays() # if in fullscreen mode
+# bool = TryResizeView(ctypes.byref(Size(width, height)))
+# SetPreferredMinSize(ctypes.byref(Size(width, height)))
+# ApplicationViewMode = get_ViewMode()
+# bool = IsViewModeSupported(ApplicationViewMode)
+# bool = TryEnterViewModeAsync(ApplicationViewMode)
+# bool = TryEnterViewModeWithPreferencesAsync(ApplicationViewMode, IViewModePreferences)
+# bool = TryConsolidateAsync() # closes the appview
+# some_string = get_PersistedStateId()
+# put_PersistedStateId(some_string)
+# IWindowingEnvironment = get_WindowingEnvironment()
+# IDisplayRegion = GetDisplayRegions()
+#
+# ApplicationViewOrientation = get_Orientation()
+#
+# bool = get_AdjacentToLeftDisplayEdge()
+# bool = get_AdjacentToRightDisplayEdge()
+# bool = get_IsFullScreen()
+# bool = get_IsOnLockScreen()
+# bool = get_IsScreenCaptureEnabled()
+# put_IsScreenCaptureEnabled(bool)
+# some_string = get_Title()
+# put_Title(some_string)
+#
+# id = get_Id()
+#
+# cookie = add_Consolidated(IApplicationViewConsolidatedEventArgs)
+# remove_Consolidated(cookie)
+#
 
 class Module(object):
 
@@ -82,6 +151,21 @@ class Module(object):
             IApplicationViewCollection
         )
 
+        pObjectArray = self.__pViewCollection.GetViews()
+
+        for i in range(pObjectArray.GetCount()):
+            ppView = comtypes.cast(
+                pObjectArray.GetAt(i, IID_IApplicationView9),
+                POINTER(IApplicationView9)
+            )
+
+        ppView = comtypes.cast(
+            self.__pViewCollection.GetViewForHwnd(hwnd),
+            POINTER(IApplicationView9)
+        )
+
+        self.__pViewCollection.RefreshCollection()
+
         self.DesktopNotificationCallback = (
             DesktopNotificationCallback
         )
@@ -95,9 +179,10 @@ class Module(object):
         pObjectArray = self.__pDesktopManagerInternal.GetDesktops()
 
         for i in range(pObjectArray.GetCount()):
-            pDesktop = POINTER(IVirtualDesktop)()
-            pObjectArray.GetAt(i,
-                IID_IVirtualDesktop.ctypes.byref(IVirtualDesktop))
+            pDesktop = comtypes.cast(
+                pObjectArray.GetAt(i, IID_IVirtualDesktop),
+                POINTER(IVirtualDesktop)
+            )
 
             id = pDesktop.GetID()
             desktop_ids += [id]

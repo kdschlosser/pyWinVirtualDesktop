@@ -1,0 +1,84 @@
+environment:
+  global:
+    PIP_DISABLE_PIP_VERSION_CHECK: "1"
+  matrix:
+    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+      PYTHON: "C:\\Python37"
+      PYTHON_VERSION: "3.7.x"
+      PYTHON_ARCH: "64"
+
+    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+      PYTHON: "C:\\Python27-x64"
+      PYTHON_VERSION: "2.7.x"
+      PYTHON_ARCH: "64"
+
+
+# allows RDP login to Appveyor when finished
+# connection details will be shown
+# on_finish:
+#   - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
+
+install:
+  - ps: >-
+      # If there is a newer build queued for the same PR, cancel this one.
+      # The AppVeyor 'rollout builds' option is supposed to serve the same
+      # purpose but it is problematic because it tends to cancel builds pushed
+      # directly to master instead of just PR builds (or the converse).
+      # credits: JuliaLang developers.
+      $builds = (Invoke-RestMethod `https://ci.appveyor.com/api/projects/$env:APPVEYOR_ACCOUNT_NAME/$env:APPVEYOR_PROJECT_SLUG/history?recordsNumber=50).builds
+      $builds = $builds | Where-Object pullRequestId -eq $env:APPVEYOR_PULL_REQUEST_NUMBER)[0].buildNumber)
+      if ($env:APPVEYOR_PULL_REQUEST_NUMBER -and $env:APPVEYOR_BUILD_NUMBER -ne $ builds) {
+          throw "There are newer queued builds for this pull request, failing early."
+      }
+
+      $env:PATH=$env:PYTHON/Scripts;$env:PATH
+      $env:PYTHONPATH=$env:PYTHON
+
+      # Upgrade to the latest version of pip to avoid it displaying warnings
+      # about it being out of date.
+      $env:PYTHON/python -m pip install --upgrade pip
+
+      # We need to update setup tools to ensure that the new setup program will
+      # run properly.
+      $env:PYTHON/python -m pip install --upgrade setuptools
+
+build_script:
+  - ps: >-
+      # build python-openzwave and package into a wheel and an egg
+      $env:PYTHON/python setup.py install
+#
+#after_build:
+#  - ps: >-
+#      $whl = get-childitem dist\*.whl;
+#      $env:PYTHON/python -m pip install $whl
+#
+test_script:
+ - ps: >-
+      # Run the project tests
+      # $env:PYTHON/python -m pip install nose
+      # $env:PYTHON/scripts/nosetests --verbose tests
+      $env:PYTHON/python tests/__init__.py
+
+#artifacts:
+#  # Archive the wheel and agg in the ci.appveyor.com build report.
+#  - path: dist/*.whl
+#    name: wheel
+#  - path: dist/*.egg
+#    name: egg
+
+deploy_script:
+  - ps: >-
+      # below are 4 environment variables that you can set to allow twine to upload
+      # these should be set from the appveyor web gui and not in the script. and
+      # only set them when you are doing a release
+
+      # TWINE_USERNAME
+      # TWINE_PASSWORD
+      # TWINE_REPOSITORY_URL
+      # TWINE_CERT
+      if (Test-Path 'ENV:TWINE_PASSWORD') {
+          $env:PYTHON/python -m pip install twine
+          $env:PYTHON/python -m twine upload dist/*
+      } else {
+          "Skipping deployment."
+      }
