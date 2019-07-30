@@ -155,10 +155,10 @@ class Module(object):
         )
 
         self.__pViewCollection = (
-            POINTER(IApplicationViewCollection)
+            POINTER(IApplicationViewCollection)()
         )
 
-        self.__pViewCollection = self.__pServiceProvider.QueryService(
+        self.__pServiceProvider.QueryService(
             CLSID_ApplicationViewCollection,
             IID_IApplicationViewCollection,
             ctypes.byref(self.__pViewCollection)
