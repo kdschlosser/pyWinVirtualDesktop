@@ -25,27 +25,27 @@ install:
       # purpose but it is problematic because it tends to cancel builds pushed
       # directly to master instead of just PR builds (or the converse).
       # credits: JuliaLang developers.
-      $builds = (Invoke-RestMethod `https://ci.appveyor.com/api/projects/$env:APPVEYOR_ACCOUNT_NAME/$env:APPVEYOR_PROJECT_SLUG/history?recordsNumber=50).builds
-      $builds = $builds | Where-Object pullRequestId -eq $env:APPVEYOR_PULL_REQUEST_NUMBER)[0].buildNumber)
-      if ($env:APPVEYOR_PULL_REQUEST_NUMBER -and $env:APPVEYOR_BUILD_NUMBER -ne $ builds) {
-          throw "There are newer queued builds for this pull request, failing early."
-      }
+      #      $builds = (Invoke-RestMethod `https://ci.appveyor.com/api/projects/$env:APPVEYOR_ACCOUNT_NAME/$env:APPVEYOR_PROJECT_SLUG/history?recordsNumber=50).builds
+      #      $builds = $builds | Where-Object pullRequestId -eq $env:APPVEYOR_PULL_REQUEST_NUMBER)[0].buildNumber)
+      #      if ($env:APPVEYOR_PULL_REQUEST_NUMBER -and $env:APPVEYOR_BUILD_NUMBER -ne $ builds) {
+      #          throw "There are newer queued builds for this pull request, failing early."
+      #      }
 
-      $env:PATH=$env:PYTHON/Scripts;$env:PATH
+      $env:PATH=$env:PYTHON + "\Scripts;" + $env:PATH
       $env:PYTHONPATH=$env:PYTHON
 
       # Upgrade to the latest version of pip to avoid it displaying warnings
       # about it being out of date.
-      $env:PYTHON/python -m pip install --upgrade pip
+      $env:PYTHON\python -m pip install --upgrade pip
 
       # We need to update setup tools to ensure that the new setup program will
       # run properly.
-      $env:PYTHON/python -m pip install --upgrade setuptools
+      $env:PYTHON\python -m pip install --upgrade setuptools
 
 build_script:
   - ps: >-
       # build python-openzwave and package into a wheel and an egg
-      $env:PYTHON/python setup.py install
+      $env:PYTHON\python setup.py install
 #
 #after_build:
 #  - ps: >-
@@ -55,9 +55,9 @@ build_script:
 test_script:
  - ps: >-
       # Run the project tests
-      # $env:PYTHON/python -m pip install nose
-      # $env:PYTHON/scripts/nosetests --verbose tests
-      $env:PYTHON/python tests/__init__.py
+      # $env:PYTHON\python -m pip install nose
+      # $env:PYTHON\scripts\nosetests --verbose tests
+      $env:PYTHON\python tests\__init__.py
 
 #artifacts:
 #  # Archive the wheel and agg in the ci.appveyor.com build report.
@@ -77,8 +77,8 @@ deploy_script:
       # TWINE_REPOSITORY_URL
       # TWINE_CERT
       if (Test-Path 'ENV:TWINE_PASSWORD') {
-          $env:PYTHON/python -m pip install twine
-          $env:PYTHON/python -m twine upload dist/*
+          $env:PYTHON\python -m pip install twine
+          $env:PYTHON\python -m twine upload dist\*
       } else {
           "Skipping deployment."
       }
