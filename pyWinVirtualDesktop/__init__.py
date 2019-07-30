@@ -32,6 +32,7 @@ from .shobjidl_core import (
 )
 
 from .windows_ui_viewmanagement import (
+    IID_IApplicationViewCollection,
     IApplicationViewCollection,
     IApplicationView9,
     IID_IApplicationView9,
@@ -139,13 +140,14 @@ class Module(object):
             ),
             ctypes.POINTER(IVirtualDesktopPinnedApps)
         )
-        self.__pViewCollection = self.__pServiceProvider.QueryInterface(
-            IApplicationViewCollection
-        )
-
         self.__pDesktopManager = self.__pServiceProvider.QueryInterface(
             IVirtualDesktopManager,
             IID_IVirtualDesktopManager
+        )
+
+        self.__pViewCollection = self.__pServiceProvider.QueryInterface(
+            IApplicationViewCollection,
+            IID_IApplicationViewCollection
         )
 
         # pObjectArray = self.__pViewCollection.GetViews()
