@@ -49,7 +49,6 @@ class IServiceProvider(comtypes.IUnknown):
             HRESULT,
             'RemoteQueryService',
             (['in'], REFGUID, 'guidService'),
-            (['in'], REFIID, 'riid'),
-            (['out', 'iid_is(riid)'], POINTER(POINTER(comtypes.IUnknown)), 'ppvObject'),
+            (['out'], POINTER(POINTER(comtypes.IUnknown)), 'ppvObject'),
         ),
     ]
