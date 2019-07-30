@@ -21,7 +21,7 @@ environment:
 #   - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
 
 install:
-  - ps: >-
+  - ps: |
       # If there is a newer build queued for the same PR, cancel this one.
       # The AppVeyor 'rollout builds' option is supposed to serve the same
       # purpose but it is problematic because it tends to cancel builds pushed
@@ -38,21 +38,21 @@ install:
       python -m pip install --upgrade setuptools
 
 build_script:
-  - ps: >-
+  - ps: |
       python setup.py install
-      python tests\__init__.py
 #
 #after_build:
 #  - ps: >-
 #      $whl = get-childitem dist\*.whl;
 #      $env:PYTHON/python -m pip install $whl
 #
-#test_script:
-# - ps: >-
-#      # Run the project tests
-#      # python -m pip install nose
-#      # nosetests --verbose tests
-#      python tests\__init__.py
+
+test_script:
+ - ps: |
+      # Run the project tests
+      # python -m pip install nose
+      # nosetests --verbose tests
+      python tests\__init__.py
 
 #artifacts:
 #  # Archive the wheel and agg in the ci.appveyor.com build report.
@@ -61,19 +61,19 @@ build_script:
 #  - path: dist/*.egg
 #    name: egg
 
-#deploy_script:
-#  - ps: >-
-#      # below are 4 environment variables that you can set to allow twine to upload
-#      # these should be set from the appveyor web gui and not in the script. and
-#      # only set them when you are doing a release
-#
-#      # TWINE_USERNAME
-#      # TWINE_PASSWORD
-#      # TWINE_REPOSITORY_URL
-#      # TWINE_CERT
-#      if (Test-Path 'ENV:TWINE_PASSWORD') {
-#          python -m pip install twine
-#          python -m twine upload dist\*
-#      } else {
-#          "Skipping deployment."
-#      }
+deploy_script:
+  - ps: |
+      # below are 4 environment variables that you can set to allow twine to upload
+      # these should be set from the appveyor web gui and not in the script. and
+      # only set them when you are doing a release
+
+      # TWINE_USERNAME
+      # TWINE_PASSWORD
+      # TWINE_REPOSITORY_URL
+      # TWINE_CERT
+      if (Test-Path 'ENV:TWINE_PASSWORD') {
+          python -m pip install twine
+          python -m twine upload dist\*
+      } else {
+          "Skipping deployment."
+      }
