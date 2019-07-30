@@ -34,31 +34,25 @@ install:
       #      }
 
       $env:PATH = $env:PYTHON + ';' + $env:PYTHON + "\\Scripts;" + $env:PATH
-
-      # Upgrade to the latest version of pip to avoid it displaying warnings
-      # about it being out of date.
       python -m pip install --upgrade pip
-
-      # We need to update setup tools to ensure that the new setup program will
-      # run properly.
       python -m pip install --upgrade setuptools
 
 build_script:
   - ps: >-
-      # build python-openzwave and package into a wheel and an egg
       python setup.py install
+      python tests\__init__.py
 #
 #after_build:
 #  - ps: >-
 #      $whl = get-childitem dist\*.whl;
 #      $env:PYTHON/python -m pip install $whl
 #
-test_script:
- - ps: >-
-      # Run the project tests
-      # python -m pip install nose
-      # nosetests --verbose tests
-      python tests\__init__.py
+#test_script:
+# - ps: >-
+#      # Run the project tests
+#      # python -m pip install nose
+#      # nosetests --verbose tests
+#      python tests\__init__.py
 
 #artifacts:
 #  # Archive the wheel and agg in the ci.appveyor.com build report.
