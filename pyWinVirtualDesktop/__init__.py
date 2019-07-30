@@ -230,7 +230,7 @@ class Module(object):
 
 
 class InstanceSingleton(type):
-    
+
     def __init__(cls, *args, **kwargs):
         """
         InstanceSingleton metaclass constructor.
@@ -255,7 +255,7 @@ class InstanceSingleton(type):
         return cls._instances[key]
 
 
-@six.with_metaclass(InstanceSingleton)
+@six.add_metaclass(InstanceSingleton)
 class Window(object):
 
     def __init__(self, pDesktopManagerInternal, pDesktopManager, hwnd):
@@ -312,7 +312,7 @@ class Window(object):
             )
 
 
-@six.with_metaclass(InstanceSingleton)
+@six.add_metaclass(InstanceSingleton)
 class Desktop(object):
 
     def __init__(self, pDesktopManagerInternal, pDesktopManager, id):
