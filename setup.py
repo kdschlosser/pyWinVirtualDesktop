@@ -2,13 +2,16 @@
 
 from setuptools import setup, find_packages
 
-
 setup(
     name='python_openzwave',
     author='Kevin Schlosser',
     author_email='kevin.g.schlosser@gmail.com',
     version='0.1.0b',
     zip_safe=False,
+    dependency_links=[
+        'https://github.com/kdschlosser/comtypes/tarball'
+        '/zip_safe#egg=comtypes'
+    ],
     url='https://github.com/kdschlosser/pyWinVirtualDesktop',
     install_requires=['six', 'comtypes'],
     packages=['pyWinVirtualDesktop'] + find_packages('pyWinVirtualDesktop'),
