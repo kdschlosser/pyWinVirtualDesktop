@@ -6,7 +6,7 @@ setup(
     name='pyWinVirtualDesktop',
     author='Kevin Schlosser',
     author_email='kevin.g.schlosser@gmail.com',
-    version='0.1.0b',
+    version='0.1.0',
     zip_safe=False,
     dependency_links=[
         'https://github.com/kdschlosser/comtypes/tarball'
