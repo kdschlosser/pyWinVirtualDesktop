@@ -598,8 +598,7 @@ class IApplicationView3(IApplicationView2):
         COMMETHOD(
             [helpstring('Takes the app out of full-screen mode.')],
             HRESULT,
-            'ExitFullScreenMode',
-            (),
+            'ExitFullScreenMode'
         ),
         COMMETHOD(
             [helpstring(
@@ -608,7 +607,6 @@ class IApplicationView3(IApplicationView2):
             )],
             HRESULT,
             'ShowStandardSystemOverlays',
-            (),
         ),
         COMMETHOD(
             [helpstring(
@@ -812,7 +810,6 @@ class IApplicationViewCollection(comtypes.IUnknown):
             [helpstring('RefreshCollection')],
             HRESULT,
             'RefreshCollection',
-            (),
         ),
         COMMETHOD(
             [helpstring('RegisterForApplicationViewChanges')],
