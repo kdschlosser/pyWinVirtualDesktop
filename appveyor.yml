@@ -31,8 +31,8 @@ install:
       #          throw "There are newer queued builds for this pull request, failing early."
       #      }
 
-      $env:PATH=$env:PYTHON + "\Scripts;" + $env:PATH
-      $env:PYTHONPATH=$env:PYTHON
+      $env:PATH = $env:PYTHON + "\\Scripts;" + $env:PATH
+      $env:PYTHONPATH = $env:PYTHON
 
       # Upgrade to the latest version of pip to avoid it displaying warnings
       # about it being out of date.
