@@ -230,13 +230,14 @@ class Module(object):
 
 
 class InstanceSingleton(type):
-    _instances = {}
+    
+    def __init__(cls, *args, **kwargs):
+        """
+        InstanceSingleton metaclass constructor.
+        """
+        super(InstanceSingleton, cls).__init__(*args, **kwargs)
 
-    def __new__(mcs, name, bases, dct):
-        cls = super(InstanceSingleton, mcs).__new__(name, bases, dct)
         cls._instances = {}
-
-        return cls
 
     def __call__(cls, pDesktopManagerInternal, pDesktopManager, id):
 
