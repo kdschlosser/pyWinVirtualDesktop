@@ -32,6 +32,7 @@ from .shobjidl_core import (
 )
 
 from .windows_ui_viewmanagement import (
+    CLSID_ApplicationViewCollection,
     IID_IApplicationViewCollection,
     IApplicationViewCollection,
     IApplicationView9,
@@ -158,8 +159,8 @@ class Module(object):
         )
 
         self.__pViewCollection = self.__pServiceProvider.QueryService(
-            ctypes.byref(IID_IApplicationViewCollection),
-            ctypes.byref(IID_IApplicationViewCollection),
+            CLSID_ApplicationViewCollection,
+            IID_IApplicationViewCollection,
             ctypes.byref(self.__pViewCollection)
         )
 
