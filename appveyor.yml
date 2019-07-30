@@ -6,11 +6,13 @@ environment:
       PYTHON: "C:\\Python37"
       PYTHON_VERSION: "3.7.x"
       PYTHON_ARCH: "64"
+      PYTHONPATH: "C:\\Python37"
 
     - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
       PYTHON: "C:\\Python27-x64"
       PYTHON_VERSION: "2.7.x"
       PYTHON_ARCH: "64"
+      PYTHONPATH: "C:\\Python27-x64"
 
 
 # allows RDP login to Appveyor when finished
@@ -31,21 +33,20 @@ install:
       #          throw "There are newer queued builds for this pull request, failing early."
       #      }
 
-      $env:PATH = $env:PYTHON + "\\Scripts;" + $env:PATH
-      $env:PYTHONPATH = $env:PYTHON
+      $env:PATH = $env:PYTHON + ';' + $env:PYTHON + "\\Scripts;" + $env:PATH
 
       # Upgrade to the latest version of pip to avoid it displaying warnings
       # about it being out of date.
-      $env:PYTHON\python -m pip install --upgrade pip
+      python -m pip install --upgrade pip
 
       # We need to update setup tools to ensure that the new setup program will
       # run properly.
-      $env:PYTHON\python -m pip install --upgrade setuptools
+      python -m pip install --upgrade setuptools
 
 build_script:
   - ps: >-
       # build python-openzwave and package into a wheel and an egg
-      $env:PYTHON\python setup.py install
+      python setup.py install
 #
 #after_build:
 #  - ps: >-
@@ -55,9 +56,9 @@ build_script:
 test_script:
  - ps: >-
       # Run the project tests
-      # $env:PYTHON\python -m pip install nose
-      # $env:PYTHON\scripts\nosetests --verbose tests
-      $env:PYTHON\python tests\__init__.py
+      # python -m pip install nose
+      # nosetests --verbose tests
+      python tests\__init__.py
 
 #artifacts:
 #  # Archive the wheel and agg in the ci.appveyor.com build report.
