@@ -5,7 +5,7 @@ import ctypes
 from ctypes.wintypes import BOOL, HWND, LPARAM, INT, HWND, DWORD, HANDLE
 
 
-user32 = ctypes.WinDLL.User32
+user32 = ctypes.windll.User32
 NULL = None
 
 
@@ -84,7 +84,7 @@ _GetWindowThreadProcessId.restype = DWORD
 
 MAX_PATH = 260
 
-kernel32 = ctypes.WinDLL.Kernel32
+kernel32 = ctypes.windll.Kernel32
 
 # HANDLE OpenProcess(
 #   DWORD dwDesiredAccess,
