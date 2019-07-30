@@ -3,7 +3,7 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='python_openzwave',
+    name='pyWinVirtualDesktop',
     author='Kevin Schlosser',
     author_email='kevin.g.schlosser@gmail.com',
     version='0.1.0b',
