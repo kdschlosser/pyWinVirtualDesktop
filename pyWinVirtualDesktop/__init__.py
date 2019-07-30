@@ -146,9 +146,9 @@ class Module(object):
             IVirtualDesktopManager,
         )
 
-        self.__pViewCollection = self.__pPinnedApps.QueryInterface(
-            IApplicationViewCollection,
+        self.__pViewCollection = comtypes.CoCreateInstance(
             IID_IApplicationViewCollection,
+            IApplicationViewCollection,
         )
 
         # pObjectArray = self.__pViewCollection.GetViews()
