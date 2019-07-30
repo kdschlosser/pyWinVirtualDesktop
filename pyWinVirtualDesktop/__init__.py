@@ -144,7 +144,7 @@ class Module(object):
         self.__pDesktopManager = comtypes.cast(
             self.__pServiceProvider.RemoteQueryService(
                 IID_IVirtualDesktopManager,
-                IVirtualDesktopManager
+                IID_IVirtualDesktopManager
             ),
             POINTER(IVirtualDesktopManager)
         )
@@ -152,7 +152,7 @@ class Module(object):
         self.__pViewCollection = comtypes.cast(
             self.__pServiceProvider.RemoteQueryService(
                 IID_IApplicationViewCollection,
-                IApplicationViewCollection
+                IID_IApplicationViewCollection
             ),
             POINTER(IApplicationViewCollection)
         )
