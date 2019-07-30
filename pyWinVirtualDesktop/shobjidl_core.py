@@ -47,7 +47,6 @@ CLSID_VirtualDesktopNotificationService = GUID(
 IID_IVirtualDesktopNotificationService = GUID(
     '{0CD45E71-D927-4F15-8B0A-8FEF525337BF}'
 )
-
 CLSID_VirtualDesktopManagerInternal = GUID(
     '{C5E0CDCA-7B6E-41B2-9FC4-D93975CC467B}'
 )

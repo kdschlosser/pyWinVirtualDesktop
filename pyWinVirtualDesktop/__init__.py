@@ -144,7 +144,6 @@ class Module(object):
         self.__pDesktopManager = comtypes.CoCreateInstance(
             CLSID_VirtualDesktopManager,
             IVirtualDesktopManager,
-            comtypes.CLSCTX_LOCAL_SERVER,
         )
 
         self.__pViewCollection = self.__pPinnedApps.QueryInterface(
