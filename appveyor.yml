@@ -67,19 +67,19 @@ test_script:
 #  - path: dist/*.egg
 #    name: egg
 
-deploy_script:
-  - ps: >-
-      # below are 4 environment variables that you can set to allow twine to upload
-      # these should be set from the appveyor web gui and not in the script. and
-      # only set them when you are doing a release
-
-      # TWINE_USERNAME
-      # TWINE_PASSWORD
-      # TWINE_REPOSITORY_URL
-      # TWINE_CERT
-      if (Test-Path 'ENV:TWINE_PASSWORD') {
-          $env:PYTHON\python -m pip install twine
-          $env:PYTHON\python -m twine upload dist\*
-      } else {
-          "Skipping deployment."
-      }
+#deploy_script:
+#  - ps: >-
+#      # below are 4 environment variables that you can set to allow twine to upload
+#      # these should be set from the appveyor web gui and not in the script. and
+#      # only set them when you are doing a release
+#
+#      # TWINE_USERNAME
+#      # TWINE_PASSWORD
+#      # TWINE_REPOSITORY_URL
+#      # TWINE_CERT
+#      if (Test-Path 'ENV:TWINE_PASSWORD') {
+#          python -m pip install twine
+#          python -m twine upload dist\*
+#      } else {
+#          "Skipping deployment."
+#      }
