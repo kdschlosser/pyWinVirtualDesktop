@@ -2,12 +2,12 @@ environment:
   global:
     PIP_DISABLE_PIP_VERSION_CHECK: "1"
   matrix:
-     - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
       PYTHON: "C:\\Python27-x64"
       PYTHON_VERSION: "2.7.x"
       PYTHON_ARCH: "64"
       PYTHONPATH: "C:\\Python27-x64"
-      
+
     - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
       PYTHON: "C:\\Python37"
       PYTHON_VERSION: "3.7.x"
