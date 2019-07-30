@@ -119,26 +119,33 @@ class Module(object):
             comtypes.CLSCTX_LOCAL_SERVER,
         )
 
-        self.__pDesktopManagerInternal = comtypes.cast(
-            self.__pServiceProvider.QueryService(
-                CLSID_VirtualDesktopManagerInternal,
-                IID_IVirtualDesktopManagerInternal
-            ),
-            ctypes.POINTER(IVirtualDesktopManagerInternal)
+        self.__pDesktopManagerInternal = (
+            POINTER(IVirtualDesktopManagerInternal)()
         )
-        self.__pNotificationService = comtypes.cast(
-            self.__pServiceProvider.QueryService(
-                CLSID_VirtualDesktopNotificationService,
-                IID_IVirtualDesktopNotificationService
-            ),
-            ctypes.POINTER(IVirtualDesktopNotificationService)
+
+        self.__pServiceProvider.QueryService(
+            CLSID_VirtualDesktopManagerInternal,
+            IID_IVirtualDesktopManagerInternal,
+            ctypes.byref(self.__pDesktopManagerInternal)
+            )
+
+        self.__pNotificationService = (
+            POINTER(IVirtualDesktopNotificationService)()
         )
-        self.__pPinnedApps = comtypes.cast(
-            self.__pServiceProvider.QueryService(
-                CLSID_VirtualDesktopPinnedApps,
-                IID_IVirtualDesktopPinnedApps
-            ),
-            ctypes.POINTER(IVirtualDesktopPinnedApps)
+        self.__pServiceProvider.QueryService(
+            CLSID_VirtualDesktopNotificationService,
+            IID_IVirtualDesktopNotificationService,
+            ctypes.byref(self.__pNotificationService)
+        )
+
+        self.__pPinnedApps = (
+            POINTER(IVirtualDesktopPinnedApps)()
+        )
+
+        self.__pServiceProvider.QueryService(
+            CLSID_VirtualDesktopPinnedApps,
+            IID_IVirtualDesktopPinnedApps,
+            ctypes.byref(self.__pPinnedApps)
         )
 
         self.__pDesktopManager = comtypes.CoCreateInstance(
@@ -146,9 +153,14 @@ class Module(object):
             IVirtualDesktopManager,
         )
 
-        self.__pViewCollection = comtypes.CoCreateInstance(
-            IID_IApplicationViewCollection,
-            IApplicationViewCollection,
+        self.__pViewCollection = (
+            POINTER(IApplicationViewCollection)
+        )
+
+        self.__pViewCollection = self.__pServiceProvider.QueryService(
+            ctypes.byref(IID_IApplicationViewCollection),
+            ctypes.byref(IID_IApplicationViewCollection),
+            ctypes.byref(self.__pViewCollection)
         )
 
         # pObjectArray = self.__pViewCollection.GetViews()

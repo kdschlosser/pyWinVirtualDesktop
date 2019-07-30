@@ -42,7 +42,7 @@ class IServiceProvider(comtypes.IUnknown):
             'QueryService',
             (['in'], REFGUID, 'guidService'),
             (['in'], REFIID, 'riid'),
-            (['out'], POINTER(LPVOID), 'ppvObject'),
+            (['in'], POINTER(LPVOID), 'ppvObject'),
         ),
         COMMETHOD(
             [helpstring('Gets the service object of the specified type.')],
