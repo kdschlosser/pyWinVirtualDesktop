@@ -141,6 +141,13 @@ class Module(object):
             ctypes.POINTER(IVirtualDesktopPinnedApps)
         )
 
+        self.__pViewCollection = comtypes.cast(
+            self.__pServiceProvider.RemoteQueryService(
+                IID_IApplicationViewCollection
+            ),
+            POINTER(IApplicationViewCollection)
+        )
+        
         self.__pDesktopManager = comtypes.cast(
             self.__pServiceProvider.RemoteQueryService(
                 IID_IVirtualDesktopManager
@@ -148,12 +155,7 @@ class Module(object):
             POINTER(IVirtualDesktopManager)
         )
 
-        self.__pViewCollection = comtypes.cast(
-            self.__pServiceProvider.RemoteQueryService(
-                IID_IApplicationViewCollection
-            ),
-            POINTER(IApplicationViewCollection)
-        )
+
 
         # pObjectArray = self.__pViewCollection.GetViews()
 
