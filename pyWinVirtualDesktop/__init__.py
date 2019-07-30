@@ -143,13 +143,10 @@ class Module(object):
             IApplicationViewCollection
         )
 
-        self.__pDesktopManager = comtypes.cast(
-            self.__pServiceProvider.QueryInterface(
-                IID_IVirtualDesktopManager
-            ),
-            ctypes.POINTER(IVirtualDesktopManager)
+        self.__pDesktopManager = self.__pServiceProvider.QueryInterface(
+            IVirtualDesktopManager,
+            IID_IVirtualDesktopManager
         )
-
 
         # pObjectArray = self.__pViewCollection.GetViews()
 
