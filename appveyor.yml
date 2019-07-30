@@ -36,7 +36,7 @@ install:
       #      }
 
       $env:PATH = $env:PYTHON + ';' + $env:PYTHON + "\\Scripts;" + $env:PATH
-      python -m easy_install -q --upgrade setuptools
+      python -m easy_install --upgrade setuptools
 
 
 build_script:
