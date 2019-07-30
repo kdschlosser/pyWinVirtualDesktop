@@ -141,18 +141,22 @@ class Module(object):
             ctypes.POINTER(IVirtualDesktopPinnedApps)
         )
 
-        self.__pDesktopManager = POINTER(IVirtualDesktopManager)()
-        self.__pServiceProvider.QueryService(
-            IID_IVirtualDesktopManager,
-            ctypes.byref(self.__pDesktopManager)
+        self.__pDesktopManager = comtypes.cast(
+            self.__pServiceProvider.RemoteQueryService(
+                IID_IVirtualDesktopManager,
+                IVirtualDesktopManager
+            ),
+            POINTER(IVirtualDesktopManager)
         )
 
-        self.__pViewCollection = POINTER(IApplicationViewCollection)()
-        self.__pServiceProvider.QueryService(
-            IID_IApplicationViewCollection,
-            ctypes.byref(self.__pViewCollection)
+        self.__pViewCollection = comtypes.cast(
+            self.__pServiceProvider.RemoteQueryService(
+                IID_IApplicationViewCollection,
+                IApplicationViewCollection
+            ),
+            POINTER(IApplicationViewCollection)
         )
-        
+
         # pObjectArray = self.__pViewCollection.GetViews()
 
         # for i in range(pObjectArray.GetCount()):

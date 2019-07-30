@@ -44,4 +44,12 @@ class IServiceProvider(comtypes.IUnknown):
             (['in'], REFIID, 'riid'),
             (['out'], POINTER(LPVOID), 'ppvObject'),
         ),
+        COMMETHOD(
+            [helpstring('Gets the service object of the specified type.')],
+            HRESULT,
+            'RemoteQueryService',
+            (['in'], REFGUID, 'guidService'),
+            (['in'], REFIID, 'riid'),
+            (['out', 'iid_is(riid)'], POINTER(POINTER(comtypes.IUnknown)), 'ppvObject'),
+        ),
     ]
