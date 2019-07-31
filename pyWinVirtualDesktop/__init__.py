@@ -345,14 +345,17 @@ class Desktop(object):
 
     @property
     def desktop_to_left(self):
-        desktop = self.__pDesktopManagerInternal.FindDesktop(
-            ctypes.byref(self.id)
+        desktop = comtypes.cast(
+            self.__pDesktopManagerInternal.FindDesktop(
+                self.id
+            ),
+            POINTER(IVirtualDesktop)
         )
 
         neighbor = POINTER(IVirtualDesktop)()
 
         self.__pDesktopManagerInternal.GetAdjacentDesktop(
-            ctypes.byref(desktop),
+            desktop,
             AdjacentDesktop.LeftDirection,
             ctypes.byref(neighbor)
         )
@@ -365,14 +368,17 @@ class Desktop(object):
 
     @property
     def desktop_to_right(self):
-        desktop = self.__pDesktopManagerInternal.FindDesktop(
-            ctypes.byref(self.id)
+        desktop = comtypes.cast(
+            self.__pDesktopManagerInternal.FindDesktop(
+                self.id
+            ),
+            POINTER(IVirtualDesktop)
         )
 
         neighbor = POINTER(IVirtualDesktop)()
 
         self.__pDesktopManagerInternal.GetAdjacentDesktop(
-            ctypes.byref(desktop),
+            desktop,
             AdjacentDesktop.RightDirection,
             ctypes.byref(neighbor)
         )
