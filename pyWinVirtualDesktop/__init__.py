@@ -354,10 +354,9 @@ class Desktop(object):
 
         neighbor = POINTER(IVirtualDesktop)()
 
-        self.__pDesktopManagerInternal.GetAdjacentDesktop(
+        neighbor = self.__pDesktopManagerInternal.GetAdjacentDesktop(
             ctypes.byref(desktop),
-            AdjacentDesktop.LeftDirection,
-            ctypes.byref(neighbor)
+            AdjacentDesktop.LeftDirection
         )
 
         return Desktop(
@@ -375,12 +374,9 @@ class Desktop(object):
             POINTER(IVirtualDesktop)
         )
 
-        neighbor = POINTER(IVirtualDesktop)()
-
-        self.__pDesktopManagerInternal.GetAdjacentDesktop(
+        neighbor = self.__pDesktopManagerInternal.GetAdjacentDesktop(
             ctypes.byref(desktop),
-            AdjacentDesktop.RightDirection,
-            ctypes.byref(neighbor)
+            AdjacentDesktop.RightDirection
         )
 
         return Desktop(

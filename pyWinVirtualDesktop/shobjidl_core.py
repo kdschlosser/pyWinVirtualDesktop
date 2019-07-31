@@ -227,7 +227,7 @@ class IVirtualDesktopManagerInternal(comtypes.IUnknown):
             'GetAdjacentDesktop',
             (['in'], POINTER(IVirtualDesktop), 'pDesktopReference'),
             (['in'], AdjacentDesktop, 'uDirection'),
-            (['in', 'iid_is'], POINTER(LPVOID), 'ppAdjacentDesktop'),
+            (['out', 'retval'], POINTER(POINTER(IVirtualDesktop)), 'ppAdjacentDesktop'),
         ),
         COMMETHOD(
             [helpstring('Method SwitchDesktop')],
