@@ -352,8 +352,9 @@ class Desktop(object):
             POINTER(IVirtualDesktop)
         )
 
-        try:
+        print(desktop.GetId())
 
+        try:
             neighbor = self.__pDesktopManagerInternal.GetAdjacentDesktop(
                 ctypes.byref(desktop),
                 AdjacentDesktop.LeftDirection
@@ -364,7 +365,7 @@ class Desktop(object):
                 self.__pDesktopManager,
                 neighbor.GetId()
             )
-        except comtypes.COMError:
+        except ctypes.ArgumentError:
             pass
 
     @property
@@ -377,7 +378,6 @@ class Desktop(object):
         )
 
         try:
-
             neighbor = self.__pDesktopManagerInternal.GetAdjacentDesktop(
                 ctypes.byref(desktop),
                 AdjacentDesktop.RightDirection
@@ -388,7 +388,7 @@ class Desktop(object):
                 self.__pDesktopManager,
                 neighbor.GetId()
             )
-        except comtypes.COMError:
+        except ctypes.ArgumentError:
             pass
 
     def add_window(self, window):
