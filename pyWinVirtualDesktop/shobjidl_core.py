@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from ctypes.wintypes import HWND, BOOL, DWORD, INT, UINT, WCHAR
+from ctypes.wintypes import HWND, BOOL, DWORD, INT, UINT, WCHAR, LPVOID
 from ctypes import HRESULT, POINTER
 
 import comtypes
@@ -227,7 +227,7 @@ class IVirtualDesktopManagerInternal(comtypes.IUnknown):
             'GetAdjacentDesktop',
             (['in'], POINTER(IVirtualDesktop), 'pDesktopReference'),
             (['in'], AdjacentDesktop, 'uDirection'),
-            (['in'], POINTER(POINTER(IVirtualDesktop)), 'ppAdjacentDesktop'),
+            (['in', 'iid_is'], POINTER(LPVOID), 'ppAdjacentDesktop'),
         ),
         COMMETHOD(
             [helpstring('Method SwitchDesktop')],
