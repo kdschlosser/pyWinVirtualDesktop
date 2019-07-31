@@ -352,18 +352,20 @@ class Desktop(object):
             POINTER(IVirtualDesktop)
         )
 
-        neighbor = POINTER(IVirtualDesktop)()
+        try:
 
-        neighbor = self.__pDesktopManagerInternal.GetAdjacentDesktop(
-            ctypes.byref(desktop),
-            AdjacentDesktop.LeftDirection
-        )
+            neighbor = self.__pDesktopManagerInternal.GetAdjacentDesktop(
+                ctypes.byref(desktop),
+                AdjacentDesktop.LeftDirection
+            )
 
-        return Desktop(
-            self.__pDesktopManagerInternal,
-            self.__pDesktopManager,
-            neighbor.GetId()
-        )
+            return Desktop(
+                self.__pDesktopManagerInternal,
+                self.__pDesktopManager,
+                neighbor.GetId()
+            )
+        except comtypes.COMError:
+            pass
 
     @property
     def desktop_to_right(self):
@@ -374,16 +376,20 @@ class Desktop(object):
             POINTER(IVirtualDesktop)
         )
 
-        neighbor = self.__pDesktopManagerInternal.GetAdjacentDesktop(
-            ctypes.byref(desktop),
-            AdjacentDesktop.RightDirection
-        )
+        try:
 
-        return Desktop(
-            self.__pDesktopManagerInternal,
-            self.__pDesktopManager,
-            neighbor.GetId()
-        )
+            neighbor = self.__pDesktopManagerInternal.GetAdjacentDesktop(
+                ctypes.byref(desktop),
+                AdjacentDesktop.RightDirection
+            )
+
+            return Desktop(
+                self.__pDesktopManagerInternal,
+                self.__pDesktopManager,
+                neighbor.GetId()
+            )
+        except comtypes.COMError:
+            pass
 
     def add_window(self, window):
         if not isinstance(window, Window):
@@ -605,12 +611,7 @@ class VirtualDesktopNotification(comtypes.COMObject):
         return S_OK
 
 
-
-
 desktop_ids = Module.desktop_ids
-create_desktop = Module.create_desktop
 
-Module()
-
-
-
+pyWinVirtualDesktop = Module()
+create_desktop = pyWinVirtualDesktop.create_desktop
