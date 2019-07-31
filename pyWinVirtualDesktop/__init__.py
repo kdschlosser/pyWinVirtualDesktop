@@ -158,11 +158,15 @@ class Module(object):
             POINTER(IApplicationViewCollection)()
         )
 
-        self.__pServiceProvider.QueryService(
-            CLSID_ApplicationViewCollection,
-            IID_IApplicationViewCollection,
-            ctypes.byref(self.__pViewCollection)
-        )
+        try:
+
+            self.__pServiceProvider.QueryService(
+                CLSID_ApplicationViewCollection,
+                IID_IApplicationViewCollection,
+                ctypes.byref(self.__pViewCollection)
+            )
+        except comtypes.COMError:
+            self.__pViewCollection = None
 
         # pObjectArray = self.__pViewCollection.GetViews()
 
