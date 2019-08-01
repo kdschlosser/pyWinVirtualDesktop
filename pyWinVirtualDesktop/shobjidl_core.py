@@ -162,7 +162,7 @@ class IVirtualDesktopManager(comtypes.IUnknown):
             HRESULT,
             'IsWindowOnCurrentVirtualDesktop',
             (['in'], HWND, 'topLevelWindow'),
-            (['out'], POINTER(BOOL), 'onCurrentDesktop'),
+            (['out', 'retval'], POINTER(BOOL), 'onCurrentDesktop'),
         ),
         COMMETHOD(
             [helpstring(
@@ -172,7 +172,7 @@ class IVirtualDesktopManager(comtypes.IUnknown):
             HRESULT,
             'GetWindowDesktopId',
             (['in'], HWND, 'topLevelWindow'),
-            (['out'], POINTER(GUID), 'desktopId'),
+            (['out', 'retval'], POINTER(GUID), 'desktopId'),
         ),
         COMMETHOD(
             [helpstring('Moves a window to the specified virtual desktop.')],
@@ -193,7 +193,7 @@ class IVirtualDesktopManagerInternal(comtypes.IUnknown):
             [helpstring('Method GetCount')],
             HRESULT,
             'GetCount',
-            (['out'], POINTER(UINT), 'pCount'),
+            (['out', 'retval'], POINTER(UINT), 'pCount'),
         ),
         COMMETHOD(
             [helpstring('Method MoveViewToDesktop')],
@@ -207,7 +207,7 @@ class IVirtualDesktopManagerInternal(comtypes.IUnknown):
             HRESULT,
             'CanViewMoveDesktops',
             (['in'], POINTER(IApplicationView), 'pView'),
-            (['out'], POINTER(BOOL), 'pfCanViewMoveDesktops'),
+            (['out', 'retval'], POINTER(BOOL), 'pfCanViewMoveDesktops'),
         ),
         COMMETHOD(
             [helpstring('Method GetCurrentDesktop')],

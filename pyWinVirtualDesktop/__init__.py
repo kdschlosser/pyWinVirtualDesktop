@@ -44,6 +44,7 @@ from .windows_ui_viewmanagement import (
     ViewSizePreference
 )
 
+S_OK = 0x00000000
 
 #
 # ApplicationViewOrientation.ApplicationViewOrientation_Landscape
@@ -345,14 +346,7 @@ class Desktop(object):
 
     @property
     def desktop_to_left(self):
-        desktop = comtypes.cast(
-            self.__pDesktopManagerInternal.FindDesktop(
-                self.id
-            ),
-            POINTER(IVirtualDesktop)
-        )
-
-        print(desktop.GetId())
+        desktop = self.__pDesktopManagerInternal.FindDesktop(self.id)
 
         try:
             neighbor = self.__pDesktopManagerInternal.GetAdjacentDesktop(
@@ -370,12 +364,7 @@ class Desktop(object):
 
     @property
     def desktop_to_right(self):
-        desktop = comtypes.cast(
-            self.__pDesktopManagerInternal.FindDesktop(
-                self.id
-            ),
-            POINTER(IVirtualDesktop)
-        )
+        desktop = self.__pDesktopManagerInternal.FindDesktop(self.id)
 
         try:
             neighbor = self.__pDesktopManagerInternal.GetAdjacentDesktop(
@@ -402,15 +391,17 @@ class Desktop(object):
         window.move_to_desktop(self)
 
     def __iter__(self):
-
         for hwnd in EnumWindows():
-            id = self.__pDesktopManager.GetWindowDesktopId(hwnd)
-            if str(id) == str(self.id):
-                yield Window(
-                    self.__pDesktopManagerInternal,
-                    self.__pDesktopManager,
-                    hwnd
-                )
+            try:
+                id = self.__pDesktopManager.GetWindowDesktopId(hwnd)
+                if str(id) == str(self.id):
+                    yield Window(
+                        self.__pDesktopManagerInternal,
+                        self.__pDesktopManager,
+                        hwnd
+                    )
+            except comtypes.COMError:
+                continue
 
     @property
     def is_active(self):
@@ -421,7 +412,7 @@ class Desktop(object):
         desktop = self.__pDesktopManagerInternal.FindDesktop(
             ctypes.byref(self.id)
         )
-        self.__pDesktopManagerInternal.SwitchDesktop(desktop)
+        self.__pDesktopManagerInternal.SwitchDesktop(ctypes.byref(desktop))
 
     def delete(self):
         pyWinVirtualDesktop = __import__(__name__.split('.')[0])
