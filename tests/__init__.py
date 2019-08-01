@@ -2,9 +2,6 @@
 from __future__ import print_function
 import pyWinVirtualDesktop
 
-pyWinVirtualDesktop.create_desktop()
-pyWinVirtualDesktop.create_desktop()
-
 for desktop in pyWinVirtualDesktop:
     print('DESKTOP ID:', desktop.id)
 
