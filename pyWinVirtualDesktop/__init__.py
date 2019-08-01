@@ -168,6 +168,7 @@ class Module(object):
             )
         except comtypes.COMError:
             self.__pViewCollection = None
+            print('IApplicationViewCollection not supported')
 
         # pObjectArray = self.__pViewCollection.GetViews()
 
@@ -409,42 +410,32 @@ class Desktop(object):
         return str(current_desktop.GetId()) == str(self.id)
 
     def activate(self):
-        desktop = self.__pDesktopManagerInternal.FindDesktop(
-            ctypes.byref(self.id)
-        )
+        desktop = self.__pDesktopManagerInternal.FindDesktop(self.id)
         self.__pDesktopManagerInternal.SwitchDesktop(ctypes.byref(desktop))
 
     def delete(self):
-        pyWinVirtualDesktop = __import__(__name__.split('.')[0])
-
         for id in pyWinVirtualDesktop.desktop_ids:
             if str(id) != str(self.id):
                 break
         else:
             raise RuntimeError(
-                'You cannot delete the only Virtual Desktop.')
+                'You cannot delete the only Virtual Desktop.'
+            )
 
-        pRemove = self.__pDesktopManagerInternal.FindDesktop(
-            ctypes.byref(self.id)
-        )
-        pFallbackDesktop = self.__pDesktopManagerInternal.FindDesktop(
-            ctypes.byref(id)
-        )
+        pRemove = self.__pDesktopManagerInternal.FindDesktop(self.id)
+        pFallbackDesktop = self.__pDesktopManagerInternal.FindDesktop(id)
         self.__pDesktopManagerInternal.RemoveDesktop(
-            pRemove,
-            pFallbackDesktop
+            ctypes.byref(pRemove),
+            ctypes.byref(pFallbackDesktop)
         )
 
     def add_view(self, pView):
 
         if self.__pDesktopManagerInternal.CanViewMoveDesktops(pView):
-            pDesktop = self.__pDesktopManagerInternal.FindDesktop(
-                ctypes.byref(self.id)
-            )
-
+            pDesktop = self.__pDesktopManagerInternal.FindDesktop(self.id)
             self.__pDesktopManagerInternal.MoveViewToDesktop(
                 pView,
-                pDesktop
+                ctypes.byref(pDesktop)
             )
 
 
