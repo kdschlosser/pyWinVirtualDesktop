@@ -160,8 +160,7 @@ class Module(object):
         )
 
         try:
-
-            self.__pServiceProvider.QueryService(
+            self.__pServiceProvider.RemoteQueryService(
                 IID_IApplicationViewCollection,
                 ctypes.byref(self.__pViewCollection)
             )
