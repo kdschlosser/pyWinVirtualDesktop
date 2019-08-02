@@ -162,11 +162,12 @@ class Module(object):
         try:
 
             self.__pServiceProvider.QueryService(
-                CLSID_ApplicationViewCollection,
                 IID_IApplicationViewCollection,
                 ctypes.byref(self.__pViewCollection)
             )
         except comtypes.COMError:
+            import traceback
+            traceback.print_exc()
             self.__pViewCollection = None
             print('IApplicationViewCollection not supported')
 
