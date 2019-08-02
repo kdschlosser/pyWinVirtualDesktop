@@ -11,7 +11,14 @@ from comtypes.GUID import GUID
 
 from .windows_ui_viewmanagement import IApplicationView
 from .objectarray import IObjectArray
-
+from .iids import (
+    IID_IVirtualDesktop,
+    IID_IVirtualDesktopNotification,
+    IID_IVirtualDesktopNotificationService,
+    IID_IVirtualDesktopManagerInternal,
+    IID_IVirtualDesktopManager,
+    IID_IVirtualDesktopPinnedApps
+)
 
 REFGUID = POINTER(GUID)
 REFIID = REFGUID
@@ -22,56 +29,18 @@ INT64 = ctypes.c_int64
 PCWSTR = POINTER(WCHAR)
 
 
-IID_IVirtualDesktop = GUID(
-    '{FF72FFDD-BE7E-43FC-9C03-AD81681E88E4}'
-)
-
-IID_IVirtualDesktopNotification = GUID(
-    '{C179334C-4295-40D3-BEA1-C654D965605A}'
-)
-
-
-# IID_IVirtualDesktopManagerInternal = GUID(
-#     '{AF8DA486-95BB-4460-B3B7-6E7A6B2962B5}'
-# )
-
-# IID_IVirtualDesktopManagerInternal = GUID(
-#     '{EF9F1A6C-D3CC-4358-B712-F84B635BEBE7}'
-# )
-
-
 CLSID_VirtualDesktopNotificationService = GUID(
     '{A501FDEC-4A09-464C-AE4E-1B9C21B84918}'
-)
-
-IID_IVirtualDesktopNotificationService = GUID(
-    '{0CD45E71-D927-4F15-8B0A-8FEF525337BF}'
 )
 CLSID_VirtualDesktopManagerInternal = GUID(
     '{C5E0CDCA-7B6E-41B2-9FC4-D93975CC467B}'
 )
-
-IID_IVirtualDesktopManagerInternal = GUID(
-    '{F31574D6-B682-4CDC-BD56-1827860ABEC6}'
-)
-
 CLSID_VirtualDesktopManager = GUID(
     '{AA509086-5CA9-4C25-8f95-589D3C07B48A}'
 )
-
-IID_IVirtualDesktopManager = GUID(
-    '{A5CD92FF-29BE-454C-8D04-D82879FB3F1B}'
-)
-
 CLSID_VirtualDesktopPinnedApps = GUID(
     '{B5A399E7-1C87-46B8-88E9-FC5747B171BD}'
 )
-
-IID_IVirtualDesktopPinnedApps = GUID(
-    '{4CE81583-1E4C-4632-A621-07A53543148F}'
-)
-
-
 
 class AdjacentDesktop(ENUM):
     LeftDirection = 3

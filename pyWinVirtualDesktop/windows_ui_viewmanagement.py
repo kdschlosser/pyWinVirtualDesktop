@@ -14,6 +14,19 @@ import ctypes
 from comtypes import helpstring, COMMETHOD
 from comtypes.GUID import GUID
 
+from .iids import (
+    IID_IApplicationView,
+    IID_IApplicationView2,
+    IID_IApplicationView3,
+    IID_IApplicationView4,
+    IID_IApplicationView7,
+    IID_IApplicationView9,
+    IID_IApplicationViewTitleBar,
+    IID_IViewModePreferences,
+    IID_IApplicationViewCollection,
+    IID_IApplicationViewConsolidatedEventArgs
+)
+
 
 REFGUID = POINTER(GUID)
 REFIID = REFGUID
@@ -23,26 +36,10 @@ INT32 = ctypes.c_int32
 INT64 = ctypes.c_int64
 PCWSTR = POINTER(WCHAR)
 
-
-# IID_IApplicationView = GUID('{D222D519-4361-451E-96C4-60F4F9742DB0}')
-IID_IApplicationView = GUID('{372E1D3B-38D3-42E4-A15B-8AB2B178F513}')
-IID_IApplicationView2 = GUID('{E876B196-A545-40DC-B594-450CBA68CC00}')
-IID_IApplicationView3 = GUID('{903C9CE5-793A-4FDF-A2B2-AF1AC21E3108}')
-IID_IApplicationView4 = GUID('{15E5CBEC-9E0F-46B5-BC3F-9BF653E74B5E}')
-IID_IApplicationView7 = GUID('{A0369647-5FAF-5AA6-9C38-BEFBB12A071E}')
-IID_IApplicationView9 = GUID('{9C6516F9-021A-5F01-93E5-9BDAD2647574}')
-
-IID_IApplicationViewTitleBar = GUID('{00924AC0-932B-4A6B-9C4B-DC38C82478CE}')
-IID_IViewModePreferences = GUID('{878FCD3A-0B99-42C9-84D0-D3F1D403554B}')
+# '9AC0B5C8-1484-4C5B-9533-4134A0F97CEA' IApplicationView ???
 
 CLSID_ApplicationViewCollection = GUID(
     '{1841C6D7-4F9D-42C0-AF41-8747538F10E5}'
-)
-IID_IApplicationViewCollection = GUID(
-    '{1841C6D7-4F9D-42C0-AF41-8747538F10E5}'
-)
-IID_IApplicationViewConsolidatedEventArgs = GUID(
-    '{514449EC-7EA2-4DE7-A6A6-7DFBAAEBB6FB}'
 )
 
 IImmersiveApplication = UINT

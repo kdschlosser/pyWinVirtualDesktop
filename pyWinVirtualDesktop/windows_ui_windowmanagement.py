@@ -8,19 +8,13 @@ from .windows_foundation import Point, Size
 from ctypes import HRESULT, POINTER
 from ctypes.wintypes import BOOL, INT
 from comtypes import GUID, COMMETHOD, helpstring
-
+from .iids import (
+    IID_IWindowingEnvironment,
+    IID_IDisplayRegion,
+    IID_IWindowingEnvironmentChangedEventArgs
+)
 
 ENUM = INT
-
-IID_IWindowingEnvironment = GUID(
-    '{264363C0-2A49-5417-B3AE-48A71C63A3BD}'
-)
-IID_IDisplayRegion = GUID(
-    '{DB50C3A2-4094-5F47-8CB1-EA01DDAFAA94}'
-)
-IID_IWindowingEnvironmentChangedEventArgs = GUID(
-    '{4160CFC6-023D-5E9A-B431-350E67DC978A}'
-)
 
 
 class WindowingEnvironmentKind(ENUM):
