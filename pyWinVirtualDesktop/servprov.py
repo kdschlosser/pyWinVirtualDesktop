@@ -49,6 +49,6 @@ class IServiceProvider(comtypes.IUnknown):
             HRESULT,
             'RemoteQueryService',
             (['in'], REFGUID, 'guidService'),
-            (['out'], POINTER(POINTER(comtypes.IUnknown)), 'ppvObject'),
+            (['in'], POINTER(POINTER(comtypes.IUnknown)), 'ppvObject'),
         ),
     ]
