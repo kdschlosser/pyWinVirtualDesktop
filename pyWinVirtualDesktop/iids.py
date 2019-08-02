@@ -126,7 +126,7 @@ for i in range(_winreg.QueryInfoKey(handle)[0]):
         continue
 
     for item in iids:
-        if item in value:
+        if value.endswith(item):
             print(value, name)
             res['IID_' + item] = GUID(name.upper())
             break
