@@ -67,10 +67,15 @@ IID_IDisplayRegion = GUID(
 IID_IWindowingEnvironmentChangedEventArgs = GUID(
     '{4160CFC6-023D-5E9A-B431-350E67DC978A}'
 )
-
-IID_IApplicationViewCollectionManagement = None
-IID_IApplicationViewChangeListener = None
-IID_IImmersiveApplication = None
+IID_IApplicationViewCollectionManagement = GUID(
+    '{B644FE9D-3090-4A41-9F18-465A5F445272}'
+)
+IID_IApplicationViewChangeListener = GUID(
+    '{727F9E97-76EE-497B-A942-B6371328485C}'
+)
+IID_IImmersiveApplication = GUID(
+    '{F63C57D3-03A2-40A9-AB07-7FC0D51184B2}'
+)
 
 iids = [
     'IVirtualDesktopNotificationService',
@@ -122,7 +127,9 @@ for i in range(_winreg.QueryInfoKey(handle)[0]):
 
     for item in iids:
         if item in value:
+            print(value, name)
             res['IID_' + item] = GUID(name.upper())
+            break
 
 _winreg.CloseKey(handle)
 
