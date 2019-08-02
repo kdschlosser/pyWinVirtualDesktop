@@ -133,12 +133,12 @@ def GetProcessName(hwnd):
     )
 
     res = ''
-    
-    for i in range(260):
-        if not lpExeName[i].value:
-            break
-        res += lpExeName[i].value
 
+    for i in range(260):
+        if not lpExeName[i]:
+            break
+        res += lpExeName[i]
+    
     if res:
         res = os.path.split(res)[-1]
     return res
