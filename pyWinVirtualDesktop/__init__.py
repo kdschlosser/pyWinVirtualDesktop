@@ -4,6 +4,8 @@ import sys
 import comtypes
 import ctypes
 import six
+import libWinVirtualDesktop
+
 from ctypes import POINTER
 
 from .winuser import EnumWindows, IsWindow, GetWindowText, GetProcessName
