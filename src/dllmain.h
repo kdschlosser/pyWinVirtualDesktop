@@ -22,7 +22,7 @@ std::map<HWND, int> listeners;
 IServiceProvider* pServiceProvider = nullptr;
 IVirtualDesktopManagerInternal *pDesktopManagerInternal = nullptr;
 IVirtualDesktopManager *pDesktopManager = nullptr;
-IApplicationViewCollection *viewCollection = nullptr;
+void *viewCollection = nullptr;
 IVirtualDesktopPinnedApps *pinnedApps = nullptr;
 IVirtualDesktopNotificationService* pDesktopNotificationService = nullptr;
 BOOL registeredForNotifications = FALSE;
@@ -1321,6 +1321,8 @@ initlibWinVirtualDesktop(void)
     pDesktopNotificationService = nullptr;
     registeredForNotifications = FALSE;
 
+    IApplicationViewCollection* tempViewCollection = nullptr;
+
     ::CoInitialize(NULL);
     ::CoCreateInstance(
         CLSID_ImmersiveShell,
@@ -1334,9 +1336,10 @@ initlibWinVirtualDesktop(void)
         PyErr_SetString(ServiceProviderError, "FATAL ERROR");
         INITERROR;
     }
+
     pServiceProvider->QueryService(
         __uuidof(IApplicationViewCollection),
-        &viewCollection
+        &tempViewCollection
     );
 
     pServiceProvider->QueryService(
@@ -1364,9 +1367,22 @@ initlibWinVirtualDesktop(void)
     );
 
 
-    if (viewCollection == nullptr) {
-        PyErr_SetString(ViewCollectionError, "FATAL ERROR");
-        INITERROR;
+    if (tempViewCollection == nullptr) {
+        IApplicationViewCollectionOlder* tempViewCollection2 = nullptr;
+
+        pServiceProvider->QueryService(
+            __uuidof(IApplicationViewCollectionOlder),
+            &tempViewCollection2
+        );
+
+        if (tempViewCollection2 == nullptr) {
+            PyErr_SetString(ViewCollectionError, "FATAL ERROR");
+            INITERROR;
+        }
+
+        viewCollection = (IApplicationViewCollection) tempViewCollection2;
+    } else {
+        viewCollection = (IApplicationViewCollection) tempViewCollection;
     }
 
     if (pDesktopManagerInternal == nullptr) {

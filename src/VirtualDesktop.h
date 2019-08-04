@@ -211,7 +211,34 @@ DECLARE_INTERFACE_IID_(IVirtualDesktopPinnedApps, IUnknown, "4ce81583-1e4c-4632-
 
 
 // In registry: Computer\HKEY_LOCAL_MACHINE\SOFTWARE\Classes\Interface\{1841C6D7-4F9D-42C0-AF41-8747538F10E5}
+"2C08ADF0-A386-4B35-9250-0FE183476FCC"
+
 DECLARE_INTERFACE_IID_(IApplicationViewCollection, IUnknown, "1841C6D7-4F9D-42C0-AF41-8747538F10E5") {
+    /*** IUnknown methods ***/
+    STDMETHOD(QueryInterface)(THIS_ REFIID riid, LPVOID FAR* ppvObject) PURE;
+    STDMETHOD_(ULONG, AddRef)(THIS) PURE;
+    STDMETHOD_(ULONG, Release)(THIS) PURE;
+
+    /*** IApplicationViewCollection methods ***/
+    STDMETHOD(GetViews)(THIS_ IObjectArray**) PURE;
+    STDMETHOD(GetViewsByZOrder)(THIS_ IObjectArray**) PURE;
+    STDMETHOD(GetViewsByAppUserModelId)(THIS_ PCWSTR, IObjectArray**) PURE;
+    STDMETHOD(GetViewForHwnd)(THIS_ HWND, IApplicationView**) PURE;
+    STDMETHOD(GetViewForApplication)(THIS_ IImmersiveApplication*, IApplicationView**) PURE;
+    STDMETHOD(GetViewForAppUserModelId)(THIS_ PCWSTR, IApplicationView**) PURE;
+    STDMETHOD(GetViewInFocus)(THIS_ IApplicationView**) PURE;
+    STDMETHOD(Unknown1)(THIS_ IApplicationView**) PURE;
+
+    STDMETHOD(RefreshCollection)(THIS) PURE;
+    STDMETHOD(RegisterForApplicationViewChanges)(THIS_ IApplicationViewChangeListener*, DWORD*) PURE;
+
+    // Removed in 1809
+    // STDMETHOD(RegisterForApplicationViewPositionChanges)(THIS_ IApplicationViewChangeListener*, DWORD*) PURE;
+    STDMETHOD(UnregisterForApplicationViewChanges)(THIS_ DWORD) PURE;
+};
+
+
+DECLARE_INTERFACE_IID_(IApplicationViewCollectionOlder, IUnknown, "2C08ADF0-A386-4B35-9250-0FE183476FCC") {
     /*** IUnknown methods ***/
     STDMETHOD(QueryInterface)(THIS_ REFIID riid, LPVOID FAR* ppvObject) PURE;
     STDMETHOD_(ULONG, AddRef)(THIS) PURE;
