@@ -91,15 +91,10 @@ GUID _ConvertPyGuidToGuid(PyObject* pGuid) {
     std::copy(sGuid, sGuid + strlen(sGuid), back_inserter(w));
     const WCHAR *pwcsName = w.c_str();
 
-
     OLECHAR strCLSID[39];
     wcscpy_s(strCLSID, (size_t)39, pwcsName);
 
-    CoInitialize(NULL);
-
-    CLSIDFromString(strCLSID, &guid);
-
-    CoUninitialize();
+    CLSIDFromString((LPCOLESTR)strCLSID, &guid);
 
     return guid;
 }
