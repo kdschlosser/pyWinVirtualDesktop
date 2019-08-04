@@ -53,9 +53,9 @@ struct ShowWindowOnDesktopAction {
 HWND _ConvertPyHwndToHwnd(PyObject* pyHwnd) {
     HWND hwnd;
     if (PyLong_Check(pyHwnd)) {
-        hwnd = (HWND)PyLong_AsLong(pyHwnd);
+        hwnd = PyLong_AsLong(pyHwnd);
     } else if (PyInt_Check(pyHwnd)){
-        hwnd = (HWND)PyInt_AsLong(pyHwnd);
+        hwnd = PyInt_AsLong(pyHwnd);
     } else {
         hwnd = 0;
     }
