@@ -3,9 +3,7 @@
 #include "VirtualDesktop.h"
 #include <Python.h>
 #include <string.h>
-#include <rpc.h>
 
-#define stringstream std::stringstream
 #define string std::string
 
 #define VDA_VirtualDesktopCreated 5
