@@ -72,13 +72,21 @@ GUID _ConvertPyGuidToGuid(PyObject* pGuid) {
 
 
 static PyObject* _ConvertGuidToPyGuid(GUID guid) {
-    RPC_CSTR sRes;
-    if (::UuidToStringA(&guid, &sRes) == RPC_S_OK) {
-        PyObject* res = Py_BuildValue("s", (char*) sRes);
-        ::RpcStringFree(&sRes);
-        return res;
-    }
-    return Py_BuildValue("s", "");
+    HRESULT hr = ::CoInitializeEx(nullptr, COINIT_MULTITHREADED);
+
+    const size_t SIZE = 39;
+    wchar_t* wch = nullptr;
+    hr = ::StringFromCLSID(guid, &wch);
+
+    char sRes[SIZE];
+    size_t count = 0;
+    int result = ::wcstombs_s(&count, sRes, wch, SIZE);
+    ::CoTaskMemFree(wch);
+
+    ::CoUninitialize();
+
+    PyObject* res = Py_BuildValue("s", sRes);
+    return res;
 }
 
 
