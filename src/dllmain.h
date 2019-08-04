@@ -296,7 +296,7 @@ static PyObject* ApplicationViewGetThumbnailWindow(PyObject* self, PyObject* arg
 
 static PyObject* ApplicationViewGetVisibility(PyObject* self, PyObject* args) {
     HWND hwnd;
-    PyArg_ParseTuple(args, "l"", &hwnd);
+    PyArg_ParseTuple(args, "l", &hwnd);
     IApplicationView* view = _GetViewFromPyWindowHwnd(hwnd);
     int visibility;
     if (view != nullptr) {
