@@ -1,112 +1,15 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function
 import sys
-import comtypes
-import ctypes
 import six
 import libWinVirtualDesktop
-
-from ctypes import POINTER
-
-from .winuser import EnumWindows, IsWindow, GetWindowText, GetProcessName
-from .servprov import IServiceProvider, CLSID_ImmersiveShell
-from .shobjidl_core import (
-    CLSID_VirtualDesktopNotificationService,
-    IID_IVirtualDesktopNotificationService,
-    IVirtualDesktopNotificationService,
-
-    CLSID_VirtualDesktopManagerInternal,
-    IID_IVirtualDesktopManagerInternal,
-    IVirtualDesktopManagerInternal,
-
-    CLSID_VirtualDesktopPinnedApps,
-    IID_IVirtualDesktopPinnedApps,
-    IVirtualDesktopPinnedApps,
-
-    CLSID_VirtualDesktopManager,
-    IID_IVirtualDesktopManager,
-    IVirtualDesktopManager,
-
-    IID_IVirtualDesktop,
-    IVirtualDesktop,
-    IVirtualDesktopNotification,
-    AdjacentDesktop
+from .winuser import (
+    GetWindowText,
+    IsWindow,
+    GetProcessName,
+    EnumWindows
 )
 
-from .windows_ui_viewmanagement import (
-    CLSID_ApplicationViewCollection,
-    IID_IApplicationViewCollection,
-    IApplicationViewCollection,
-    IApplicationView9,
-    IID_IApplicationView9,
-    ApplicationViewOrientation,
-    ApplicationViewBoundsMode,
-    FullScreenSystemOverlayMode,
-    ApplicationViewMode,
-    ViewSizePreference
-)
-
-S_OK = 0x00000000
-
-#
-# ApplicationViewOrientation.ApplicationViewOrientation_Landscape
-# ApplicationViewOrientation.ApplicationViewOrientation_Portrait
-# ApplicationViewBoundsMode.ApplicationViewBoundsMode_UseVisible
-# ApplicationViewBoundsMode.ApplicationViewBoundsMode_UseCoreWindow
-# FullScreenSystemOverlayMode.FullScreenSystemOverlayMode_Standard
-# FullScreenSystemOverlayMode.FullScreenSystemOverlayMode_Minimal
-# ApplicationViewMode.ApplicationViewMode_Default
-# ApplicationViewMode.ApplicationViewMode_CompactOverlay
-# ViewSizePreference.ViewSizePreference_Default
-# ViewSizePreference.ViewSizePreference_UseLess
-# ViewSizePreference.ViewSizePreference_UseHalf
-# ViewSizePreference.ViewSizePreference_UseMore
-# ViewSizePreference.ViewSizePreference_UseMinimum
-# ViewSizePreference.ViewSizePreference_UseNone
-#
-#
-# bool = get_SuppressSystemOverlays()
-# put_SuppressSystemOverlays(bool)
-# Rect = get_VisibleBounds()
-# cookie = add_VisibleBoundsChanged(IInspectable)
-# remove_VisibleBoundsChanged(cookie)
-# bool = SetDesiredBoundsMode(ApplicationViewBoundsMode)
-# ApplicationViewBoundsMode = get_DesiredBoundsMode()
-# IApplicationViewTitleBar = get_TitleBar()
-# FullScreenSystemOverlayMode = get_FullScreenSystemOverlayMode()
-# put_FullScreenSystemOverlayMode(FullScreenSystemOverlayMode)
-# bool = get_IsFullScreenMode()
-# bool = TryEnterFullScreenMode()
-# ExitFullScreenMode() # if in fullscreen mode
-# ShowStandardSystemOverlays() # if in fullscreen mode
-# bool = TryResizeView(ctypes.byref(Size(width, height)))
-# SetPreferredMinSize(ctypes.byref(Size(width, height)))
-# ApplicationViewMode = get_ViewMode()
-# bool = IsViewModeSupported(ApplicationViewMode)
-# bool = TryEnterViewModeAsync(ApplicationViewMode)
-# bool = TryEnterViewModeWithPreferencesAsync(ApplicationViewMode, IViewModePreferences)
-# bool = TryConsolidateAsync() # closes the appview
-# some_string = get_PersistedStateId()
-# put_PersistedStateId(some_string)
-# IWindowingEnvironment = get_WindowingEnvironment()
-# IDisplayRegion = GetDisplayRegions()
-#
-# ApplicationViewOrientation = get_Orientation()
-#
-# bool = get_AdjacentToLeftDisplayEdge()
-# bool = get_AdjacentToRightDisplayEdge()
-# bool = get_IsFullScreen()
-# bool = get_IsOnLockScreen()
-# bool = get_IsScreenCaptureEnabled()
-# put_IsScreenCaptureEnabled(bool)
-# some_string = get_Title()
-# put_Title(some_string)
-#
-# id = get_Id()
-#
-# cookie = add_Consolidated(IApplicationViewConsolidatedEventArgs)
-# remove_Consolidated(cookie)
-#
 
 class Module(object):
 
@@ -115,110 +18,30 @@ class Module(object):
         sys.modules[__name__] = self
         self.__original_module__ = mod
 
-        comtypes.CoInitialize()
-
-        self.__pServiceProvider = comtypes.CoCreateInstance(
-            CLSID_ImmersiveShell,
-            IServiceProvider,
-            comtypes.CLSCTX_LOCAL_SERVER,
-        )
-
-        self.__pDesktopManagerInternal = (
-            POINTER(IVirtualDesktopManagerInternal)()
-        )
-
-        self.__pServiceProvider.QueryService(
-            CLSID_VirtualDesktopManagerInternal,
-            IID_IVirtualDesktopManagerInternal,
-            ctypes.byref(self.__pDesktopManagerInternal)
-            )
-
-        self.__pNotificationService = (
-            POINTER(IVirtualDesktopNotificationService)()
-        )
-        self.__pServiceProvider.QueryService(
-            CLSID_VirtualDesktopNotificationService,
-            IID_IVirtualDesktopNotificationService,
-            ctypes.byref(self.__pNotificationService)
-        )
-
-        self.__pPinnedApps = (
-            POINTER(IVirtualDesktopPinnedApps)()
-        )
-
-        self.__pServiceProvider.QueryService(
-            CLSID_VirtualDesktopPinnedApps,
-            IID_IVirtualDesktopPinnedApps,
-            ctypes.byref(self.__pPinnedApps)
-        )
-
-        self.__pDesktopManager = comtypes.CoCreateInstance(
-            CLSID_VirtualDesktopManager,
-            IVirtualDesktopManager,
-        )
-
-        self.__pViewCollection = (
-            POINTER(IApplicationViewCollection)()
-        )
-
-        try:
-            self.__pServiceProvider.RemoteQueryService(
-                IID_IApplicationViewCollection,
-                ctypes.byref(self.__pViewCollection)
-            )
-        except comtypes.COMError:
-            import traceback
-            traceback.print_exc()
-            self.__pViewCollection = None
-            print('IApplicationViewCollection not supported')
-
-        # pObjectArray = self.__pViewCollection.GetViews()
-
-        # for i in range(pObjectArray.GetCount()):
-        #     ppView = comtypes.cast(
-        #         pObjectArray.GetAt(i, IID_IApplicationView9),
-        #         POINTER(IApplicationView9)
-        #     )
-        #
-        # ppView = comtypes.cast(
-        #     self.__pViewCollection.GetViewForHwnd(hwnd),
-        #     POINTER(IApplicationView9)
-        # )
-
-        # self.__pViewCollection.RefreshCollection()
-
-        self.DesktopNotificationCallback = (
-            DesktopNotificationCallback
-        )
-
         self.Desktop = Desktop
         self.Window = Window
 
     @property
+    def current_desktop(self):
+        desktop_guid = (
+            libWinVirtualDesktop.DesktopManagerInternalGetCurrentDesktop()
+        )
+        if desktop_guid:
+            return Desktop(desktop_guid)
+
+    @property
     def desktop_ids(self):
-        desktop_ids = []
-        pObjectArray = self.__pDesktopManagerInternal.GetDesktops()
-
-        for i in range(pObjectArray.GetCount()):
-            pDesktop = ctypes.POINTER(IVirtualDesktop)()
-            pObjectArray.GetAt(
-                i,
-                IID_IVirtualDesktop,
-                ctypes.byref(pDesktop)
-            )
-
-            id = pDesktop.GetID()
-            desktop_ids += [id]
-
+        desktop_ids = (
+            libWinVirtualDesktop.DesktopManagerInternalGetDesktopIds()
+        )
         return desktop_ids
 
     def create_desktop(self):
-        ppNewDesktop = self.__pDesktopManagerInternal.CreateDesktopW()
-        return Desktop(
-            self.__pDesktopManagerInternal,
-            self.__pDesktopManager,
-            ppNewDesktop.GetId()
+        desktop_guid = (
+            libWinVirtualDesktop.DesktopManagerInternalCreateDesktop()
         )
+        if desktop_guid:
+            return Desktop(desktop_guid)
 
     def register_notification_callback(self, callback):
 
@@ -232,24 +55,15 @@ class Module(object):
                     'VirtualDesktopNotificationCallback'
                 )
 
-        cls = VirtualDesktopNotification(
-            self.__pDesktopManagerInternal,
-            self.__pDesktopManager,
-            callback
-        )
-
-        return self.__pNotificationService.Register(cls)
-
     def unregister_notification_callback(self, cookie):
-        self.__pNotificationService.Unregister(cookie)
+        pass
+
+    def __len__(self):
+        return libWinVirtualDesktop.DesktopManagerInternalGetCount()
 
     def __iter__(self):
-        for id in self.desktop_ids:
-            yield Desktop(
-                self.__pDesktopManagerInternal,
-                self.__pDesktopManager,
-                id
-            )
+        for desktop_guid in self.desktop_ids:
+            yield Desktop(desktop_guid)
 
 
 class InstanceSingleton(type):
@@ -262,28 +76,164 @@ class InstanceSingleton(type):
 
         cls._instances = {}
 
-    def __call__(cls, pDesktopManagerInternal, pDesktopManager, id):
+    def __call__(cls, id, **kwargs):
 
-        key = (pDesktopManagerInternal, pDesktopManager, str(id))
-
+        key = [id] + list(kwargs[k] for k in sorted(kwargs.keys()))
         if key not in cls._instances:
             cls._instances[key] = (
-                super(InstanceSingleton, cls).__call__(
-                    pDesktopManagerInternal,
-                    pDesktopManager,
-                    id
-                )
+                super(InstanceSingleton, cls).__call__(id, **kwargs)
             )
 
         return cls._instances[key]
 
 
 @six.add_metaclass(InstanceSingleton)
+class View(object):
+
+    def __init__(self, window_handle):
+        self.__id = window_handle
+
+    def move_to_desktop(self, desktop):
+        if self.is_ok:
+            if isinstance(desktop, Desktop):
+                desktop = desktop.id
+
+            can_move = libWinVirtualDesktop.DesktopManagerInternalCanViewMoveDesktops(self.id)
+            if can_move > 0:
+                libWinVirtualDesktop.DesktopManagerInternalMoveViewToDesktop(desktop, self.id)
+
+    @property
+    def id(self):
+        return self.__id
+
+    @property
+    def is_ok(self):
+        return IsWindow(self.id)
+
+    @property
+    def thumbnail_handle(self):
+        if self.is_ok:
+            return libWinVirtualDesktop.ApplicationViewGetThumbnailWindow(self.id)
+
+    @property
+    def has_focus(self):
+        if self.is_ok:
+            return libWinVirtualDesktop.ApplicationViewGetFocus(self.id)
+
+    def set_focus(self):
+        if self.is_ok:
+            return libWinVirtualDesktop.ApplicationViewSetFocus(self.id)
+
+    def flash(self):
+        if self.is_ok:
+            return libWinVirtualDesktop.ApplicationViewFlash(self.id)
+
+    def activate(self):
+        if self.is_ok:
+            return libWinVirtualDesktop.ApplicationViewSwitchTo(self.id)
+
+    @property
+    def is_mirrored(self):
+        if self.is_ok:
+            return libWinVirtualDesktop.ApplicationViewIsMirrored(self.id)
+
+    @property
+    def is_splash_screen_presented(self):
+        if self.is_ok:
+            return libWinVirtualDesktop.ApplicationViewIsSplashScreenPresented(self.id)
+
+    @property
+    def is_tray(self):
+        if self.is_ok:
+            return libWinVirtualDesktop.ApplicationViewIsTray(self.id)
+
+    @property
+    def can_receive_input(self):
+        if self.is_ok:
+            return libWinVirtualDesktop.ApplicationViewCanReceiveInput(self.id)
+
+    @property
+    def scale_factor(self):
+        if self.is_ok:
+            return libWinVirtualDesktop.ApplicationViewGetScaleFactor(self.id)
+
+    @property
+    def show_in_switchers(self):
+        if self.is_ok:
+            return libWinVirtualDesktop.ApplicationViewGetShowInSwitchers(self.id)
+
+    @show_in_switchers.setter
+    def show_in_switchers(self, value):
+        if self.is_ok:
+            libWinVirtualDesktop.ApplicationViewSetShowInSwitchers(self.id, value)
+
+    @property
+    def desktop(self):
+        if self.is_ok:
+            desktop_guid = libWinVirtualDesktop.ApplicationViewGetVirtualDesktopId(self.id)
+            if desktop_guid:
+                return Desktop(desktop_guid)
+
+    @property
+    def state(self):
+        if self.is_ok:
+            return libWinVirtualDesktop.ApplicationViewGetViewState(self.id)
+
+    @state.setter
+    def state(self, value):
+        if self.is_ok:
+            libWinVirtualDesktop.ApplicationViewSetViewState(self.id, value)
+
+    @property
+    def is_visible(self):
+        if self.is_ok:
+            return libWinVirtualDesktop.ApplicationViewGetVisibility(self.id)
+
+    @property
+    def size(self):
+        rect = libWinVirtualDesktop.ApplicationViewGetExtendedFramePosition(self.id)
+        if rect:
+            return rect['right'] - rect['left'], rect['bottom'] - rect['top']
+        return None, None
+
+    @property
+    def position(self):
+        rect = libWinVirtualDesktop.ApplicationViewGetExtendedFramePosition(self.id)
+
+        if rect:
+            return rect['left'], rect['top']
+        return None, None
+
+    @property
+    def pinned(self):
+        if self.is_ok:
+            desktop_guid = (
+                libWinVirtualDesktop.DesktopManagerGetWindowDesktopId(
+                    self.id
+                )
+            )
+            if desktop_guid:
+                return libWinVirtualDesktop.DesktopPinnedAppsIsViewPinned(desktop_guid, self.id)
+
+    @pinned.setter
+    def pinned(self, value):
+        if self.is_ok:
+            desktop_guid = (
+                libWinVirtualDesktop.DesktopManagerGetWindowDesktopId(
+                    self.id
+                )
+            )
+            if desktop_guid:
+                if value:
+                    libWinVirtualDesktop.DesktopPinnedAppsPinView(desktop_guid, self.id)
+                else:
+                    libWinVirtualDesktop.DesktopPinnedAppsUnpinView(desktop_guid, self.id)
+
+
+@six.add_metaclass(InstanceSingleton)
 class Window(object):
 
-    def __init__(self, pDesktopManagerInternal, pDesktopManager, hwnd):
-        self.__pDesktopManagerInternal = pDesktopManagerInternal
-        self.__pDesktopManager = pDesktopManager
+    def __init__(self, hwnd):
         self.__hwnd = hwnd
 
     @property
@@ -293,55 +243,56 @@ class Window(object):
     @property
     def text(self):
         if self.is_ok:
-            return GetWindowText(self.__hwnd)
+            return GetWindowText(self.id)
 
         return ''
 
     @property
     def is_ok(self):
-        return IsWindow(self.__hwnd)
+        return IsWindow(self.id)
 
     @property
     def desktop(self):
         if self.is_ok:
-            desktop = self.__pDesktopManager.GetWindowDesktopId(self.__hwnd)
-
-            return Desktop(
-                self.__pDesktopManagerInternal,
-                self.__pDesktopManager,
-                desktop.GetId()
+            desktop_guid = (
+                libWinVirtualDesktop.DesktopManagerGetWindowDesktopId(
+                    self.__hwnd
+                )
             )
+
+            return Desktop(desktop_guid)
 
     @property
     def is_on_active_desktop(self):
         if self.is_ok:
-            return self.__pDesktopManager.IsWindowOnCurrentVirtualDesktop(
-                self.__hwnd
-            )
+            return libWinVirtualDesktop.DesktopManagerIsWindowOnCurrentVirtualDesktop(self.id)
 
     @property
     def process_name(self):
         if self.is_ok:
-            return GetProcessName(self.__hwnd)
+            return GetProcessName(self.id)
+
+    @property
+    def view(self):
+        return View(self.id)
 
     def move_to_desktop(self, desktop):
         if isinstance(desktop, Desktop):
             desktop = desktop.id
 
         if self.is_ok:
-            self.__pDesktopManager.MoveWindowToDesktop(
-                self.__hwnd,
-                desktop
-            )
+            return libWinVirtualDesktop.DesktopManagerMoveWindowToDesktop(desktop, self.id)
 
 
 @six.add_metaclass(InstanceSingleton)
 class Desktop(object):
 
-    def __init__(self, pDesktopManagerInternal, pDesktopManager, id):
-        self.__pDesktopManagerInternal = pDesktopManagerInternal
-        self.__pDesktopManager = pDesktopManager
-        self._id = id
+    def __init__(self, desktop_guid):
+        self._id = desktop_guid
+
+    @property
+    def number(self):
+        return libWinVirtualDesktop.GetDesktopNumberFromId(self.id)
 
     @property
     def id(self):
@@ -349,96 +300,49 @@ class Desktop(object):
 
     @property
     def desktop_to_left(self):
-        desktop = self.__pDesktopManagerInternal.FindDesktop(self.id)
-
-        try:
-            neighbor = self.__pDesktopManagerInternal.GetAdjacentDesktop(
-                ctypes.byref(desktop),
-                AdjacentDesktop.LeftDirection
-            )
-
-            return Desktop(
-                self.__pDesktopManagerInternal,
-                self.__pDesktopManager,
-                neighbor.GetId()
-            )
-        except ctypes.ArgumentError:
-            pass
+        desktop_guid = libWinVirtualDesktop.DesktopManagerInternalGetAdjacentDesktop(self.id, 3)
+        if desktop_guid:
+            return Desktop(desktop_guid)
 
     @property
     def desktop_to_right(self):
-        desktop = self.__pDesktopManagerInternal.FindDesktop(self.id)
-
-        try:
-            neighbor = self.__pDesktopManagerInternal.GetAdjacentDesktop(
-                ctypes.byref(desktop),
-                AdjacentDesktop.RightDirection
-            )
-
-            return Desktop(
-                self.__pDesktopManagerInternal,
-                self.__pDesktopManager,
-                neighbor.GetId()
-            )
-        except ctypes.ArgumentError:
-            pass
+        desktop_guid = libWinVirtualDesktop.DesktopManagerInternalGetAdjacentDesktop(self.id, 4)
+        if desktop_guid:
+            return Desktop(desktop_guid)
 
     def add_window(self, window):
         if not isinstance(window, Window):
-            window = Window(
-                self.__pDesktopManagerInternal,
-                self.__pDesktopManager,
-                window
-            )
+            window = Window(window)
 
         window.move_to_desktop(self)
 
     def __iter__(self):
         for hwnd in EnumWindows():
-            try:
-                id = self.__pDesktopManager.GetWindowDesktopId(hwnd)
-                if str(id) == str(self.id):
-                    yield Window(
-                        self.__pDesktopManagerInternal,
-                        self.__pDesktopManager,
-                        hwnd
-                    )
-            except comtypes.COMError:
-                continue
+            desktop_guid = (
+                libWinVirtualDesktop.DesktopManagerGetWindowDesktopId(hwnd)
+            )
+
+            if desktop_guid == self.id:
+                yield Window(hwnd)
 
     @property
     def is_active(self):
-        current_desktop = self.__pDesktopManagerInternal.GetCurrentDesktop()
-        return str(current_desktop.GetId()) == str(self.id)
+        current_desktop = pyWinVirtualDesktop.current_desktop
+        return current_desktop == self
 
     def activate(self):
-        desktop = self.__pDesktopManagerInternal.FindDesktop(self.id)
-        self.__pDesktopManagerInternal.SwitchDesktop(ctypes.byref(desktop))
+        return libWinVirtualDesktop.DesktopManagerInternalSwitchDesktop(self.id)
 
     def delete(self):
-        for id in pyWinVirtualDesktop.desktop_ids:
-            if str(id) != str(self.id):
+        for desktop_id in pyWinVirtualDesktop.desktop_ids:
+            if desktop_id != self.id:
                 break
         else:
             raise RuntimeError(
                 'You cannot delete the only Virtual Desktop.'
             )
 
-        pRemove = self.__pDesktopManagerInternal.FindDesktop(self.id)
-        pFallbackDesktop = self.__pDesktopManagerInternal.FindDesktop(id)
-        self.__pDesktopManagerInternal.RemoveDesktop(
-            ctypes.byref(pRemove),
-            ctypes.byref(pFallbackDesktop)
-        )
-
-    def add_view(self, pView):
-
-        if self.__pDesktopManagerInternal.CanViewMoveDesktops(pView):
-            pDesktop = self.__pDesktopManagerInternal.FindDesktop(self.id)
-            self.__pDesktopManagerInternal.MoveViewToDesktop(
-                pView,
-                ctypes.byref(pDesktop)
-            )
+        return libWinVirtualDesktop.DesktopManagerInternalRemoveDesktop(self.id, desktop_id)
 
 
 class DesktopNotificationCallback(object):
@@ -494,55 +398,30 @@ class DesktopNotificationCallback(object):
 S_OK = 0x00000000
 
 
-class VirtualDesktopNotification(comtypes.COMObject):
-    _com_interfaces_ = [IVirtualDesktopNotification]
+class VirtualDesktopNotification(object):
 
-    def __init__(self, pDesktopManagerInternal, pDesktopManager, callback):
-        self.__pDesktopManagerInternal = pDesktopManagerInternal
-        self.__pDesktopManager = pDesktopManager
+    def __init__(self, callback):
         self.__callback = callback
-        comtypes.COMObject.__init__(self)
 
     def CurrentVirtualDesktopChanged(self, pDesktopOld, pDesktopNew):
-        desktop_old = Desktop(
-            self.__pDesktopManagerInternal,
-            self.__pDesktopManager,
-            pDesktopOld.GetId()
-        )
+        desktop_old = Desktop(pDesktopOld)
 
-        desktop_new = Desktop(
-            self.__pDesktopManagerInternal,
-            self.__pDesktopManager,
-            pDesktopNew.GetId()
-        )
+        desktop_new = Desktop(pDesktopNew)
 
         self.__callback.change(desktop_old, desktop_new)
 
         return S_OK
 
     def VirtualDesktopCreated(self, pDesktop):
-        desktop = Desktop(
-            self.__pDesktopManagerInternal,
-            self.__pDesktopManager,
-            pDesktop.GetId()
-        )
+        desktop = Desktop(pDesktop)
 
         self.__callback.create(desktop)
 
         return S_OK
 
     def VirtualDesktopDestroyBegin(self, pDesktopDestroyed, pDesktopFallback):
-        desktop_destroyed = Desktop(
-            self.__pDesktopManagerInternal,
-            self.__pDesktopManager,
-            pDesktopDestroyed.GetId()
-        )
-
-        desktop_fallback = Desktop(
-            self.__pDesktopManagerInternal,
-            self.__pDesktopManager,
-            pDesktopFallback.GetId()
-        )
+        desktop_destroyed = Desktop(pDesktopDestroyed)
+        desktop_fallback = Desktop(pDesktopFallback)
 
         self.__callback.destroy_begin(
             desktop_destroyed,
@@ -552,17 +431,8 @@ class VirtualDesktopNotification(comtypes.COMObject):
         return S_OK
 
     def VirtualDesktopDestroyFailed(self, pDesktopDestroyed, pDesktopFallback):
-        desktop_destroyed = Desktop(
-            self.__pDesktopManagerInternal,
-            self.__pDesktopManager,
-            pDesktopDestroyed.GetId()
-        )
-
-        desktop_fallback = Desktop(
-            self.__pDesktopManagerInternal,
-            self.__pDesktopManager,
-            pDesktopFallback.GetId()
-        )
+        desktop_destroyed = Desktop(pDesktopDestroyed)
+        desktop_fallback = Desktop(pDesktopFallback)
 
         self.__callback.destroy_failed(
             desktop_destroyed,
@@ -572,17 +442,9 @@ class VirtualDesktopNotification(comtypes.COMObject):
         return S_OK
 
     def VirtualDesktopDestroyed(self, pDesktopDestroyed, pDesktopFallback):
-        desktop_destroyed = Desktop(
-            self.__pDesktopManagerInternal,
-            self.__pDesktopManager,
-            pDesktopDestroyed.GetId()
-        )
+        desktop_destroyed = Desktop(pDesktopDestroyed)
 
-        desktop_fallback = Desktop(
-            self.__pDesktopManagerInternal,
-            self.__pDesktopManager,
-            pDesktopFallback.GetId()
-        )
+        desktop_fallback = Desktop(pDesktopFallback)
 
         self.__callback.destroy(
             desktop_destroyed,
