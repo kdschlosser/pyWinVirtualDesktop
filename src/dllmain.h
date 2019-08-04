@@ -87,14 +87,58 @@ GUID _ConvertPyGuidToGuid(PyObject* pGuid) {
      sGuid = PyString_AsString(pGuid);
 
 #endif
-    std::wstring w;
-    std::copy(sGuid, sGuid + strlen(sGuid), back_inserter(w));
-    const WCHAR *pwcsName = w.c_str();
+    IObjectArray *pObjectArray = nullptr;
+    HRESULT hr = pDesktopManagerInternal->GetDesktops(&pObjectArray);
+    int found = -1;
 
-    OLECHAR strCLSID[39];
-    wcscpy_s(strCLSID, (size_t)39, pwcsName);
+    if (!SUCCEEDED(hr)) {
+        pObjectArray->Release();
+        return guid;
+    }
 
-    CLSIDFromString((LPCOLESTR)strCLSID, &guid);
+    UINT count;
+    hr = pObjectArray->GetCount(&count);
+
+    if (!SUCCEEDED(hr)) {
+        pObjectArray->Release();
+        return guid;
+    }
+
+    for (UINT i = 0; i < count; i++) {
+        IVirtualDesktop *pDesktop = nullptr;
+
+        if (FAILED(pObjectArray->GetAt(i, __uuidof(IVirtualDesktop), (void**)&pDesktop))) {
+            continue;
+        }
+
+        GUID tempGuid = {0};
+
+        if (SUCCEEDED(pDesktop->GetID(&tempGuid))) {
+
+            wchar_t* pWCBuffer;
+            ::StringFromCLSID((const IID) tempGuid, &pWCBuffer);
+
+            size_t count;
+            char *pMBBuffer = (char *)malloc(39);
+
+            ::wcstombs_s(&count, pMBBuffer, (size_t)39, pWCBuffer, (size_t)39);
+
+            if (sGuid == pMBBuffer) {
+                free(pMBBuffer);
+                pDesktop->Release();
+                pObjectArray->Release();
+
+                return tempGuid;
+            }
+
+            if (pMBBuffer) {
+                free(pMBBuffer);
+            }
+        }
+
+        pDesktop->Release();
+    }
+    pObjectArray->Release();
 
     return guid;
 }
@@ -262,8 +306,6 @@ static PyObject* ApplicationViewGetFocus(PyObject* self, PyObject* args) {
 
     IApplicationView* current_view;
     viewCollection->GetViewInFocus(&current_view);
-
-
 
     if ((current_view == nullptr) || (view == nullptr)) {
         view->Release();
