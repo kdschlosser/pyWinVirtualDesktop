@@ -25,9 +25,13 @@ for desktop in pyWinVirtualDesktop:
 
     print('DESKTOP WINDOWS:')
     for window in desktop:
-        if window.process_name == 'Appveyor.BuildAgent.Interactive.exe':
-            appveyor_window = window
-
+        if sys.version_info[0] == 2:
+            if window.process_name == 'Appveyor.BuildAgent.Interactive.exe':
+                appveyor_window = window
+        else:
+            if window.process_name == b'Appveyor.BuildAgent.Interactive.exe':
+                appveyor_window = window
+            
         print('    HANDLE:', window.id)
         print('    CAPTION:', repr(window.text))
         print('    PROCESS NAME:', repr(window.process_name))

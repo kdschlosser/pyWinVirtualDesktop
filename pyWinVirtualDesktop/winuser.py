@@ -131,7 +131,10 @@ def GetProcessName(hwnd):
         ctypes.byref(lpdwSize)
     )
 
-    res = ''
+    if sys.version_info[0] == 2:
+        res = ''
+    else:
+        res = b''
 
     for i in range(260):
         if sys.version_info[0] == 2:
