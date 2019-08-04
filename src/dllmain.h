@@ -5,6 +5,7 @@
 #include <string.h>
 #include <rpc.h>
 
+#define stringstream std::stringstream
 #define string std::string
 
 #define VDA_VirtualDesktopCreated 5
@@ -61,10 +62,10 @@ HWND _ConvertPyHwndToHwnd(PyObject* pyHwnd) {
 }
 */
 
-
 GUID _ConvertPyGuidToGuid(PyObject* pGuid) {
     GUID guid = {0};
     char* sGuid;
+
 #if PY_MAJOR_VERSION >= 3
     if (PyUnicode_Check(pGuid)) {
         PyObject * temp_bytes = PyUnicode_AsEncodedString(pGuid, "UTF-8", "strict"); // Owned reference
@@ -86,20 +87,25 @@ GUID _ConvertPyGuidToGuid(PyObject* pGuid) {
      sGuid = PyString_AsString(pGuid);
 
 #endif
+    std::wstring w;
+    std::copy(sGuid, sGuid + strlen(sGuid), back_inserter(w));
+    const WCHAR *pwcsName = w.c_str();
 
-    ::UuidFromString((RPC_CSTR)sGuid, &guid);
+
+    OLECHAR strCLSID[39];
+    wcscpy_s(strCLSID, (size_t)39, pwcsName);
+
+    CoInitialize(NULL);
+
+    CLSIDFromString(strCLSID, &guid);
+
+    CoUninitialize();
 
     return guid;
 }
 
 
 static PyObject* _ConvertGuidToPyGuid(GUID guid) {
-    /*
-    std::stringstream stream;
-    stream << std::hex << your_int;
-    std::string result( stream.str() );
-    */
-
     wchar_t* pWCBuffer;
     ::StringFromCLSID((const IID) guid, &pWCBuffer);
 
