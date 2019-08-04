@@ -101,7 +101,6 @@ IApplicationView* _GetViewFromPyWindowHwnd(PyObject* pyHwnd) {
 }
 
 
-
 int _GetDesktopNumberFromId(GUID desktopId) {
     IObjectArray *pObjectArray = nullptr;
     HRESULT hr = pDesktopManagerInternal->GetDesktops(&pObjectArray);
@@ -155,7 +154,6 @@ int _GetDesktopNumber(IVirtualDesktop *pDesktop) {
 
     return -1;
 }
-
 
 
 IVirtualDesktop* _GetDesktopFromNumber(int number) {

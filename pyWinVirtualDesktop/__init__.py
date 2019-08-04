@@ -79,6 +79,8 @@ class InstanceSingleton(type):
     def __call__(cls, id, **kwargs):
 
         key = [id] + list(kwargs[k] for k in sorted(kwargs.keys()))
+        key = tuple(key)
+
         if key not in cls._instances:
             cls._instances[key] = (
                 super(InstanceSingleton, cls).__call__(id, **kwargs)
