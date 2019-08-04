@@ -29,8 +29,8 @@ for desktop in pyWinVirtualDesktop:
             appveyor_window = window
 
         print('    HANDLE:', window.id)
-        print('    CAPTION:', window.text)
-        print('    PROCESS NAME:', window.process_name)
+        print('    CAPTION:', repr(window.text))
+        print('    PROCESS NAME:', repr(window.process_name))
         print('    ON ACTIVE DESKTOP:', window.is_on_active_desktop)
         print('\n')
 
