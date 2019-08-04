@@ -1,9 +1,9 @@
 #pragma once
 #include "stdafx.h"
 #include "VirtualDesktop.h"
-#include <Rpc.h>
 #include <Python.h>
 #include <string.h>
+#include <atlstr.h>
 
 #define string std::string
 
@@ -49,7 +49,7 @@ struct ShowWindowOnDesktopAction {
 
 
 // common functions
-
+/*
 HWND _ConvertPyHwndToHwnd(PyObject* pyHwnd) {
     HWND hwnd;
     if (PyInt_Check(pyHwnd)) {
@@ -59,14 +59,22 @@ HWND _ConvertPyHwndToHwnd(PyObject* pyHwnd) {
     }
     return hwnd;
 }
+*/
 
 
 GUID _ConvertPyGuidToGuid(PyObject* pGuid) {
     GUID guid = {0};
-
+    wchar_t *pWCBuffer = (wchar_t *)malloc(39);
+    size_t count;
     char* sGuid = PyString_AsString(pGuid);
+    mbstowcs_s(&count, pWCBuffer, (size_t)39, sGuid, (size_t)39);
 
-    ::UuidFromStringA((RPC_CSTR) sGuid, &guid);
+    ::CLSIDFromString(pWCBuffer, (LPCLSID)&guid);
+
+    if (pWCBuffer) {
+        free(pWCBuffer);
+    }
+
     return guid;
 }
 

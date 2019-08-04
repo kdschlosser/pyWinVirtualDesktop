@@ -132,13 +132,8 @@ def GetProcessName(hwnd):
         ctypes.byref(lpdwSize)
     )
 
-    res = ''
-
-    for i in range(260):
-        if ord(lpExeName[i]) == 0x0:
-            continue
-        res += lpExeName[i]
-
+    res = lpExeName.value
+    
     if res:
         res = os.path.split(res)[-1]
     return res
