@@ -87,7 +87,7 @@ GUID _ConvertPyGuidToGuid(PyObject* pGuid) {
 
 #endif
 
-    ::UuidToString(&guid, (RPC_CSTR*)sGuid);
+    ::UuidFromString(&guid, (RPC_CSTR*)sGuid);
 
     return guid;
 }
