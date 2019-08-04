@@ -53,7 +53,7 @@ struct ShowWindowOnDesktopAction {
 HWND _ConvertPyHwndToHwnd(PyObject* pyHwnd) {
     HWND hwnd;
     if (PyInt_Check(pyHwnd)) {
-        hwnd = (HWND)(INT) PyInt_AsLong(pyHwnd);
+        hwnd = (HWND)(INT32) PyInt_AsLong(pyHwnd);
     } else {
         hwnd = 0;
     }
@@ -72,7 +72,7 @@ GUID _ConvertPyGuidToGuid(PyObject* pGuid) {
 
 
 static PyObject* _ConvertGuidToPyGuid(GUID guid) {
-    RPC_CSTR sRes = NULL;
+    RPC_CSTR sRes;
     if (::UuidToStringA(&guid, &sRes) == RPC_S_OK) {
         return Py_BuildValue("s", (char*) sRes);
     }
