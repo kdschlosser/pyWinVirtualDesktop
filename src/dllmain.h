@@ -63,8 +63,29 @@ HWND _ConvertPyHwndToHwnd(PyObject* pyHwnd) {
 
 
 GUID _ConvertPyGuidToGuid(PyObject* pGuid) {
-    char* sGuid = PyString_AsString(pGuid);
     GUID guid = {0};
+    char* sGuid;
+#if PY_MAJOR_VERSION >= 3
+    if (PyUnicode_Check(pGuid)) {
+        PyObject * temp_bytes = PyUnicode_AsEncodedString(pGuid, "UTF-8", "strict"); // Owned reference
+        if (temp_bytes != NULL) {
+            sGuid = PyBytes_AS_STRING(temp_bytes); // Borrowed pointer
+            sGuid = strdup(sGuid);
+            Py_DECREF(temp_bytes);
+        } else {
+            return guid;
+        }
+    } else if (PyBytes_Check(pGuid)) {
+        sGuid = PyBytes_AS_STRING(pGuid); // Borrowed pointer
+        sGuid = strdup(sGuid);
+    } else {
+        return guid;
+    }
+
+#else
+     sGuid = PyString_AsString(pGuid);
+
+#endif
 
     ::UuidToString(&guid, (RPC_CSTR*)sGuid);
 
