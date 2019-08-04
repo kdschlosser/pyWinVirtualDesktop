@@ -72,20 +72,26 @@ GUID _ConvertPyGuidToGuid(PyObject* pGuid) {
 
 
 static PyObject* _ConvertGuidToPyGuid(GUID guid) {
-    HRESULT hr = ::CoInitializeEx(nullptr, COINIT_MULTITHREADED);
+    /*
+    std::stringstream stream;
+    stream << std::hex << your_int;
+    std::string result( stream.str() );
+    */
 
-    const size_t SIZE = 39;
-    wchar_t* wch = nullptr;
-    hr = ::StringFromCLSID(guid, &wch);
+    wchar_t* pWCBuffer;
+    ::StringFromCLSID((const IID) guid, &pWCBuffer);
 
-    char sRes[SIZE];
-    size_t count = 0;
-    int result = ::wcstombs_s(&count, sRes, wch, SIZE);
-    ::CoTaskMemFree(wch);
+    size_t count;
+    char *pMBBuffer = (char *)malloc(39);
 
-    ::CoUninitialize();
+    ::wcstombs_s(&count, pMBBuffer, (size_t)39, pWCBuffer, (size_t)39);
 
-    PyObject* res = Py_BuildValue("s", sRes);
+    PyObject* res = Py_BuildValue("s", pMBBuffer);
+
+    if (pMBBuffer) {
+        free(pMBBuffer);
+    }
+
     return res;
 }
 
