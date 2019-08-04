@@ -135,7 +135,7 @@ def GetProcessName(hwnd):
     res = ''
 
     for i in range(260):
-        if lpExeName[i] == 0x0:
+        if lpExeName[i] == '\x00':
             continue
         res += lpExeName[i]
 
