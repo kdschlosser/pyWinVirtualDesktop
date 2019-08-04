@@ -133,7 +133,7 @@ def GetProcessName(hwnd):
     )
 
     res = lpExeName.value
-    
+
     if res:
         res = os.path.split(res)[-1]
     return res
