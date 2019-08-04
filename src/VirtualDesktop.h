@@ -237,7 +237,7 @@ DECLARE_INTERFACE_IID_(IApplicationViewCollection, IUnknown, "1841C6D7-4F9D-42C0
 };
 
 
-DECLARE_INTERFACE_IID_(IApplicationViewCollectionOlder, IUnknown, "2C08ADF0-A386-4B35-9250-0FE183476FCC") {
+DECLARE_INTERFACE_IID_(IApplicationViewCollectionOlder, IApplicationViewCollection, "2C08ADF0-A386-4B35-9250-0FE183476FCC") {
     /*** IUnknown methods ***/
     STDMETHOD(QueryInterface)(THIS_ REFIID riid, LPVOID FAR* ppvObject) PURE;
     STDMETHOD_(ULONG, AddRef)(THIS) PURE;

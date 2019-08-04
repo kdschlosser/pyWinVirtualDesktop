@@ -1321,8 +1321,6 @@ initlibWinVirtualDesktop(void)
     pDesktopNotificationService = nullptr;
     registeredForNotifications = FALSE;
 
-    IApplicationViewCollection* tempViewCollection = nullptr;
-
     ::CoInitialize(NULL);
     ::CoCreateInstance(
         CLSID_ImmersiveShell,
@@ -1339,7 +1337,7 @@ initlibWinVirtualDesktop(void)
 
     pServiceProvider->QueryService(
         __uuidof(IApplicationViewCollection),
-        &tempViewCollection
+        &viewCollection
     );
 
     pServiceProvider->QueryService(
@@ -1366,23 +1364,17 @@ initlibWinVirtualDesktop(void)
         (PVOID*)&pDesktopNotificationService
     );
 
-
-    if (tempViewCollection == nullptr) {
-        IApplicationViewCollectionOlder* tempViewCollection2 = nullptr;
+    if (viewCollection == nullptr) {
 
         pServiceProvider->QueryService(
             __uuidof(IApplicationViewCollectionOlder),
-            &tempViewCollection2
+            &viewCollection
         );
 
-        if (tempViewCollection2 == nullptr) {
+        if (viewCollection == nullptr) {
             PyErr_SetString(ViewCollectionError, "FATAL ERROR");
             INITERROR;
         }
-
-        viewCollection = (IApplicationViewCollection) tempViewCollection2;
-    } else {
-        viewCollection = (IApplicationViewCollection) tempViewCollection;
     }
 
     if (pDesktopManagerInternal == nullptr) {
