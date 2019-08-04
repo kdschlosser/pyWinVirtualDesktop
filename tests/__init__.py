@@ -2,7 +2,7 @@
 from __future__ import print_function
 import pyWinVirtualDesktop
 
-
+import sys
 appveyor_window = None
 
 for desktop in pyWinVirtualDesktop:
@@ -31,7 +31,7 @@ for desktop in pyWinVirtualDesktop:
         else:
             if window.process_name == b'Appveyor.BuildAgent.Interactive.exe':
                 appveyor_window = window
-            
+
         print('    HANDLE:', window.id)
         print('    CAPTION:', repr(window.text))
         print('    PROCESS NAME:', repr(window.process_name))
