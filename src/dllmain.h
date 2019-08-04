@@ -74,9 +74,7 @@ GUID _ConvertPyGuidToGuid(PyObject* pGuid) {
 static PyObject* _ConvertGuidToPyGuid(GUID guid) {
     RPC_CSTR sRes = NULL;
     if (::UuidToStringA(&guid, &sRes) == RPC_S_OK) {
-        string stringRes((char*) sRes);
-        ::RpcStringFreeA(&sRes);
-        return Py_BuildValue("s", stringRes);
+        return Py_BuildValue("s", (char*) sRes);
     }
     return Py_BuildValue("s", "");
 }
