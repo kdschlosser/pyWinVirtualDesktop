@@ -105,8 +105,7 @@ IApplicationView* _GetApplicationViewFromHwnd(HWND hwnd) {
 }
 
 
-IApplicationView* _GetViewFromPyWindowHwnd(PyObject* pyHwnd) {
-    HWND hwnd = _ConvertPyHwndToHwnd(pyHwnd);
+IApplicationView* _GetViewFromPyWindowHwnd(HWND hwnd) {
     IApplicationView* view = nullptr;
 
     if (hwnd != 0) {
@@ -220,9 +219,9 @@ LPWSTR _GetApplicationIdFromHwnd(HWND hwnd) {
 // IApplicationView -------------------------------------------------
 
 static PyObject* ApplicationViewSetFocus(PyObject* self, PyObject* args) {
-    PyObject* iHwnd;
-    PyArg_ParseTuple(args, "O", &iHwnd);
-    IApplicationView* view = _GetViewFromPyWindowHwnd(iHwnd);
+    HWND hwnd;
+    PyArg_ParseTuple(args, "i", &hwnd);
+    IApplicationView* view = _GetViewFromPyWindowHwnd(hwnd);
     if (view != nullptr) {
         view->SetFocus();
         view->Release();
@@ -234,9 +233,9 @@ static PyObject* ApplicationViewSetFocus(PyObject* self, PyObject* args) {
 
 
 static PyObject* ApplicationViewGetFocus(PyObject* self, PyObject* args) {
-    PyObject* iHwnd;
-    PyArg_ParseTuple(args, "O", &iHwnd);
-    IApplicationView* view = _GetViewFromPyWindowHwnd(iHwnd);
+    HWND hwnd;
+    PyArg_ParseTuple(args, "i", &hwnd);
+    IApplicationView* view = _GetViewFromPyWindowHwnd(hwnd);
 
     IApplicationView* current_view;
     viewCollection->GetViewInFocus(&current_view);
@@ -267,9 +266,9 @@ static PyObject* ApplicationViewGetFocus(PyObject* self, PyObject* args) {
 
 
 static PyObject* ApplicationViewSwitchTo(PyObject* self, PyObject* args) {
-    PyObject* iHwnd;
-    PyArg_ParseTuple(args, "O", &iHwnd);
-    IApplicationView* view = _GetViewFromPyWindowHwnd(iHwnd);
+    HWND hwnd;
+    PyArg_ParseTuple(args, "i", &hwnd);
+    IApplicationView* view = _GetViewFromPyWindowHwnd(hwnd);
     if (view != nullptr) {
         view->SwitchTo();
         view->Release();
@@ -280,9 +279,9 @@ static PyObject* ApplicationViewSwitchTo(PyObject* self, PyObject* args) {
 }
 
 static PyObject* ApplicationViewGetThumbnailWindow(PyObject* self, PyObject* args) {
-    PyObject* iHwnd;
-    PyArg_ParseTuple(args, "O", &iHwnd);
-    IApplicationView* view = _GetViewFromPyWindowHwnd(iHwnd);
+    HWND hwnd;
+    PyArg_ParseTuple(args, "i", &hwnd);
+    IApplicationView* view = _GetViewFromPyWindowHwnd(hwnd);
     HWND thumbHwnd;
     if (view != nullptr) {
         view->GetThumbnailWindow(&thumbHwnd);
@@ -295,9 +294,9 @@ static PyObject* ApplicationViewGetThumbnailWindow(PyObject* self, PyObject* arg
 
 
 static PyObject* ApplicationViewGetVisibility(PyObject* self, PyObject* args) {
-    PyObject* iHwnd;
-    PyArg_ParseTuple(args, "O", &iHwnd);
-    IApplicationView* view = _GetViewFromPyWindowHwnd(iHwnd);
+    HWND hwnd;
+    PyArg_ParseTuple(args, "i", &hwnd);
+    IApplicationView* view = _GetViewFromPyWindowHwnd(hwnd);
     int visibility;
     if (view != nullptr) {
         view->GetVisibility(&visibility);
@@ -309,11 +308,11 @@ static PyObject* ApplicationViewGetVisibility(PyObject* self, PyObject* args) {
 }
 
 static PyObject* ApplicationViewSetCloak(PyObject* self, PyObject* args) {
-    PyObject* iHwnd;
+    HWND hwnd;
     APPLICATION_VIEW_CLOAK_TYPE cloakType;
     int unknown;
-    PyArg_ParseTuple(args, "Oii", &iHwnd, &cloakType, &unknown);
-    IApplicationView* view = _GetViewFromPyWindowHwnd(iHwnd);
+    PyArg_ParseTuple(args, "iii", &hwnd, &cloakType, &unknown);
+    IApplicationView* view = _GetViewFromPyWindowHwnd(hwnd);
     HRESULT res;
     if (view != nullptr) {
         res = view->SetCloak(cloakType, unknown);
@@ -325,9 +324,9 @@ static PyObject* ApplicationViewSetCloak(PyObject* self, PyObject* args) {
 }
 
 static PyObject* ApplicationViewGetExtendedFramePosition(PyObject* self, PyObject* args) {
-    PyObject* iHwnd;
-    PyArg_ParseTuple(args, "O", &iHwnd);
-    IApplicationView* view = _GetViewFromPyWindowHwnd(iHwnd);
+    HWND hwnd;
+    PyArg_ParseTuple(args, "i", &hwnd);
+    IApplicationView* view = _GetViewFromPyWindowHwnd(hwnd);
     RECT rect;
     PyObject* res = PyDict_New();
     if (view != nullptr) {
@@ -360,9 +359,9 @@ static PyObject* ApplicationViewGetExtendedFramePosition(PyObject* self, PyObjec
 
 
 static PyObject* ApplicationViewGetViewState(PyObject* self, PyObject* args) {
-    PyObject* iHwnd;
-    PyArg_ParseTuple(args, "O", &iHwnd);
-    IApplicationView* view = _GetViewFromPyWindowHwnd(iHwnd);
+    HWND hwnd;
+    PyArg_ParseTuple(args, "i", &hwnd);
+    IApplicationView* view = _GetViewFromPyWindowHwnd(hwnd);
 
     if (view != nullptr) {
         UINT state;
@@ -376,10 +375,10 @@ static PyObject* ApplicationViewGetViewState(PyObject* self, PyObject* args) {
 
 
 static PyObject* ApplicationViewSetViewState(PyObject* self, PyObject* args) {
-    PyObject* iHwnd;
+    HWND hwnd;
     UINT state;
-    PyArg_ParseTuple(args, "Oi", &iHwnd, &state);
-    IApplicationView* view = _GetViewFromPyWindowHwnd(iHwnd);
+    PyArg_ParseTuple(args, "ii", &hwnd, &state);
+    IApplicationView* view = _GetViewFromPyWindowHwnd(hwnd);
 
     if (view != nullptr) {
         HRESULT res;
@@ -393,9 +392,9 @@ static PyObject* ApplicationViewSetViewState(PyObject* self, PyObject* args) {
 
 
 static PyObject* ApplicationViewGetVirtualDesktopId(PyObject* self, PyObject* args) {
-    PyObject* iHwnd;
-    PyArg_ParseTuple(args, "O", &iHwnd);
-    IApplicationView* view = _GetViewFromPyWindowHwnd(iHwnd);
+    HWND hwnd;
+    PyArg_ParseTuple(args, "i", &hwnd);
+    IApplicationView* view = _GetViewFromPyWindowHwnd(hwnd);
 
     if (view != nullptr) {
         GUID guid;
@@ -410,10 +409,10 @@ static PyObject* ApplicationViewGetVirtualDesktopId(PyObject* self, PyObject* ar
 
 
 static PyObject* ApplicationViewSetVirtualDesktopId(PyObject* self, PyObject* args) {
-    PyObject* iHwnd;
+    HWND hwnd;
     PyObject* sGuid;
-    PyArg_ParseTuple(args, "OO", &iHwnd, &sGuid);
-    IApplicationView* view = _GetViewFromPyWindowHwnd(iHwnd);
+    PyArg_ParseTuple(args, "iO", &hwnd, &sGuid);
+    IApplicationView* view = _GetViewFromPyWindowHwnd(hwnd);
 
     if (view != nullptr) {
         GUID guid = _ConvertPyGuidToGuid(sGuid);
@@ -430,9 +429,9 @@ static PyObject* ApplicationViewSetVirtualDesktopId(PyObject* self, PyObject* ar
 
 
 static PyObject* ApplicationViewGetShowInSwitchers(PyObject* self, PyObject* args) {
-    PyObject* iHwnd;
-    PyArg_ParseTuple(args, "O", &iHwnd);
-    IApplicationView* view = _GetViewFromPyWindowHwnd(iHwnd);
+    HWND hwnd;
+    PyArg_ParseTuple(args, "i", &hwnd);
+    IApplicationView* view = _GetViewFromPyWindowHwnd(hwnd);
 
     if (view != nullptr) {
         int switcher;
@@ -445,10 +444,10 @@ static PyObject* ApplicationViewGetShowInSwitchers(PyObject* self, PyObject* arg
 }
 
 static PyObject* ApplicationViewSetShowInSwitchers(PyObject* self, PyObject* args) {
-    PyObject* iHwnd;
+    HWND hwnd;
     int switcher;
-    PyArg_ParseTuple(args, "Oi", &iHwnd, &switcher);
-    IApplicationView* view = _GetViewFromPyWindowHwnd(iHwnd);
+    PyArg_ParseTuple(args, "ii", &hwnd, &switcher);
+    IApplicationView* view = _GetViewFromPyWindowHwnd(hwnd);
 
     if (view != nullptr) {
         HRESULT res;
@@ -461,9 +460,9 @@ static PyObject* ApplicationViewSetShowInSwitchers(PyObject* self, PyObject* arg
 }
 
 static PyObject* ApplicationViewGetScaleFactor(PyObject* self, PyObject* args) {
-    PyObject* iHwnd;
-    PyArg_ParseTuple(args, "O", &iHwnd);
-    IApplicationView* view = _GetViewFromPyWindowHwnd(iHwnd);
+    HWND hwnd;
+    PyArg_ParseTuple(args, "i", &hwnd);
+    IApplicationView* view = _GetViewFromPyWindowHwnd(hwnd);
 
     if (view != nullptr) {
         int factor;
@@ -476,9 +475,9 @@ static PyObject* ApplicationViewGetScaleFactor(PyObject* self, PyObject* args) {
 }
 
 static PyObject* ApplicationViewCanReceiveInput(PyObject* self, PyObject* args) {
-    PyObject* iHwnd;
-    PyArg_ParseTuple(args, "O", &iHwnd);
-    IApplicationView* view = _GetViewFromPyWindowHwnd(iHwnd);
+    HWND hwnd;
+    PyArg_ParseTuple(args, "i", &hwnd);
+    IApplicationView* view = _GetViewFromPyWindowHwnd(hwnd);
 
     if (view != nullptr) {
         BOOL res;
@@ -492,9 +491,9 @@ static PyObject* ApplicationViewCanReceiveInput(PyObject* self, PyObject* args) 
 
 
 static PyObject* ApplicationViewIsTray(PyObject* self, PyObject* args) {
-    PyObject* iHwnd;
-    PyArg_ParseTuple(args, "O", &iHwnd);
-    IApplicationView* view = _GetViewFromPyWindowHwnd(iHwnd);
+    HWND hwnd;
+    PyArg_ParseTuple(args, "i", &hwnd);
+    IApplicationView* view = _GetViewFromPyWindowHwnd(hwnd);
 
     if (view != nullptr) {
         BOOL res;
@@ -508,9 +507,9 @@ static PyObject* ApplicationViewIsTray(PyObject* self, PyObject* args) {
 
 
 static PyObject* ApplicationViewIsSplashScreenPresented(PyObject* self, PyObject* args) {
-    PyObject* iHwnd;
-    PyArg_ParseTuple(args, "O", &iHwnd);
-    IApplicationView* view = _GetViewFromPyWindowHwnd(iHwnd);
+    HWND hwnd;
+    PyArg_ParseTuple(args, "i", &hwnd);
+    IApplicationView* view = _GetViewFromPyWindowHwnd(hwnd);
 
     if (view != nullptr) {
         BOOL res;
@@ -525,9 +524,9 @@ static PyObject* ApplicationViewIsSplashScreenPresented(PyObject* self, PyObject
 
 
 static PyObject* ApplicationViewFlash(PyObject* self, PyObject* args) {
-    PyObject* iHwnd;
-    PyArg_ParseTuple(args, "O", &iHwnd);
-    IApplicationView* view = _GetViewFromPyWindowHwnd(iHwnd);
+    HWND hwnd;
+    PyArg_ParseTuple(args, "i", &hwnd);
+    IApplicationView* view = _GetViewFromPyWindowHwnd(hwnd);
 
     if (view != nullptr) {
         HRESULT res;
@@ -541,9 +540,9 @@ static PyObject* ApplicationViewFlash(PyObject* self, PyObject* args) {
 
 
 static PyObject* ApplicationViewIsMirrored(PyObject* self, PyObject* args) {
-    PyObject* iHwnd;
-    PyArg_ParseTuple(args, "O", &iHwnd);
-    IApplicationView* view = _GetViewFromPyWindowHwnd(iHwnd);
+    HWND hwnd;
+    PyArg_ParseTuple(args, "i", &hwnd);
+    IApplicationView* view = _GetViewFromPyWindowHwnd(hwnd);
 
     if (view != nullptr) {
         BOOL res;
@@ -586,9 +585,9 @@ static PyObject* DesktopPinnedAppsUnpinAppID(PyObject* self, PyObject* args) {
 }
 
 static PyObject* DesktopPinnedAppsIsViewPinned(PyObject* self, PyObject* args) {
-    PyObject* iHwnd;
-    PyArg_ParseTuple(args, "O", &iHwnd);
-    IApplicationView* view = _GetViewFromPyWindowHwnd(iHwnd);
+    HWND hwnd;
+    PyArg_ParseTuple(args, "i", &hwnd);
+    IApplicationView* view = _GetViewFromPyWindowHwnd(hwnd);
 
     if (view != nullptr) {
         BOOL res;
@@ -601,9 +600,9 @@ static PyObject* DesktopPinnedAppsIsViewPinned(PyObject* self, PyObject* args) {
 }
 
 static PyObject* DesktopPinnedAppsPinView(PyObject* self, PyObject* args) {
-    PyObject* iHwnd;
-    PyArg_ParseTuple(args, "O", &iHwnd);
-    IApplicationView* view = _GetViewFromPyWindowHwnd(iHwnd);
+    HWND hwnd;
+    PyArg_ParseTuple(args, "i", &hwnd);
+    IApplicationView* view = _GetViewFromPyWindowHwnd(hwnd);
 
     if (view != nullptr) {
         HRESULT res;
@@ -616,9 +615,9 @@ static PyObject* DesktopPinnedAppsPinView(PyObject* self, PyObject* args) {
 }
 
 static PyObject* DesktopPinnedAppsUnpinView(PyObject* self, PyObject* args) {
-    PyObject* iHwnd;
-    PyArg_ParseTuple(args, "O", &iHwnd);
-    IApplicationView* view = _GetViewFromPyWindowHwnd(iHwnd);
+    HWND hwnd;
+    PyArg_ParseTuple(args, "i", &hwnd);
+    IApplicationView* view = _GetViewFromPyWindowHwnd(hwnd);
 
     if (view != nullptr) {
         HRESULT res;
@@ -648,11 +647,11 @@ RefreshCollection()
 
 static PyObject* DesktopIsViewVisible(PyObject* self, PyObject* args) {
     PyObject* sGuid;
-    PyObject* iHwnd;
-    PyArg_ParseTuple(args, "OO", &sGuid, &iHwnd);
+    HWND hwnd;
+    PyArg_ParseTuple(args, "Oi", &sGuid, &hwnd);
 
     GUID guid = _ConvertPyGuidToGuid(sGuid);
-    IApplicationView* view = _GetViewFromPyWindowHwnd(iHwnd);
+    IApplicationView* view = _GetViewFromPyWindowHwnd(hwnd);
 
     if ((view == nullptr) || (guid.Data1 == 0)) {
         view->Release();
@@ -685,10 +684,10 @@ static PyObject* DesktopManagerInternalGetCount(PyObject* self) {
 
 
 static PyObject* DesktopManagerInternalMoveViewToDesktop(PyObject* self, PyObject* args) {
-    PyObject* iHwnd;
+    HWND hwnd;
     PyObject* sGuid;
-    PyArg_ParseTuple(args, "OO", &sGuid, &iHwnd);
-    IApplicationView* view = _GetViewFromPyWindowHwnd(iHwnd);
+    PyArg_ParseTuple(args, "Oi", &sGuid, &hwnd);
+    IApplicationView* view = _GetViewFromPyWindowHwnd(hwnd);
 
     if (view != nullptr) {
         GUID guid = _ConvertPyGuidToGuid(sGuid);
@@ -719,9 +718,9 @@ static PyObject* DesktopManagerInternalMoveViewToDesktop(PyObject* self, PyObjec
 
 
 static PyObject* DesktopManagerInternalCanViewMoveDesktops(PyObject* self, PyObject* args) {
-    PyObject* iHwnd;
-    PyArg_ParseTuple(args, "O", &iHwnd);
-    IApplicationView* view = _GetViewFromPyWindowHwnd(iHwnd);
+    HWND hwnd;
+    PyArg_ParseTuple(args, "i", &hwnd);
+    IApplicationView* view = _GetViewFromPyWindowHwnd(hwnd);
 
     if (view != nullptr) {
         int res;
@@ -905,10 +904,8 @@ static PyObject* DesktopManagerInternalRemoveDesktop(PyObject* self, PyObject* a
 //IVirtualDesktopManager
 
 static PyObject* DesktopManagerIsWindowOnCurrentVirtualDesktop(PyObject* self, PyObject* args) {
-    PyObject* iHwnd;
-    PyArg_ParseTuple(args, "O", &iHwnd);
-
-    HWND hwnd = _ConvertPyHwndToHwnd(iHwnd);
+    HWND hwnd;
+    PyArg_ParseTuple(args, "i", &hwnd);
 
     if (hwnd == 0) {
         return Py_BuildValue("i", -1);
@@ -921,10 +918,8 @@ static PyObject* DesktopManagerIsWindowOnCurrentVirtualDesktop(PyObject* self, P
 
 
 static PyObject* DesktopManagerGetWindowDesktopId(PyObject* self, PyObject* args) {
-    PyObject* iHwnd;
-    PyArg_ParseTuple(args, "O", &iHwnd);
-
-    HWND hwnd = _ConvertPyHwndToHwnd(iHwnd);
+    HWND hwnd;
+    PyArg_ParseTuple(args, "i", &hwnd);
 
     if (hwnd == 0) {
         return Py_BuildValue("s", "");
@@ -938,10 +933,9 @@ static PyObject* DesktopManagerGetWindowDesktopId(PyObject* self, PyObject* args
 
 static PyObject* DesktopManagerMoveWindowToDesktop(PyObject* self, PyObject* args) {
     PyObject* sGuid;
-    PyObject* iHwnd;
-    PyArg_ParseTuple(args, "OO", &sGuid, &iHwnd);
+    HWND hwnd;
+    PyArg_ParseTuple(args, "Oi", &sGuid, &hwnd);
 
-    HWND hwnd = _ConvertPyHwndToHwnd(iHwnd);
     GUID guid = _ConvertPyGuidToGuid(sGuid);
 
     if ((hwnd == 0) || (guid.Data1 == 0)) {
