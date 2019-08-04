@@ -61,8 +61,11 @@ HWND _ConvertPyHwndToHwnd(PyObject* pyHwnd) {
 }
 
 
-GUID _ConvertPyGuidToGuid(char* sGuid) {
+GUID _ConvertPyGuidToGuid(PyObject* pGuid) {
     GUID guid = {0};
+
+    char* sGuid = PyString_AsString(pGuid);
+
     ::UuidFromStringA((RPC_CSTR) sGuid, &guid);
     return guid;
 }
@@ -73,7 +76,7 @@ static PyObject* _ConvertGuidToPyGuid(GUID guid) {
     if (::UuidToStringA(&guid, &sRes) == RPC_S_OK) {
         string stringRes((char*) sRes);
         ::RpcStringFreeA(&sRes);
-        return Py_BuildValue("s", (const char*)stringRes.c_str());
+        return PyString_FromString((const char*)stringRes.c_str());
     }
     return Py_BuildValue("s", "");
 }
@@ -394,8 +397,8 @@ static PyObject* ApplicationViewGetVirtualDesktopId(PyObject* self, PyObject* ar
 
 static PyObject* ApplicationViewSetVirtualDesktopId(PyObject* self, PyObject* args) {
     PyObject* iHwnd;
-    char* sGuid;
-    PyArg_ParseTuple(args, "Os", &iHwnd, &sGuid);
+    PyObject* sGuid;
+    PyArg_ParseTuple(args, "OO", &iHwnd, &sGuid);
     IApplicationView* view = _GetViewFromPyWindowHwnd(iHwnd);
 
     if (view != nullptr) {
@@ -630,9 +633,9 @@ RefreshCollection()
 // IVirtualDesktop -----------------------------------------------------------
 
 static PyObject* DesktopIsViewVisible(PyObject* self, PyObject* args) {
-    char* sGuid;
+    PyObject* sGuid;
     PyObject* iHwnd;
-    PyArg_ParseTuple(args, "sO", &sGuid, &iHwnd);
+    PyArg_ParseTuple(args, "OO", &sGuid, &iHwnd);
 
     GUID guid = _ConvertPyGuidToGuid(sGuid);
     IApplicationView* view = _GetViewFromPyWindowHwnd(iHwnd);
@@ -669,8 +672,8 @@ static PyObject* DesktopManagerInternalGetCount(PyObject* self) {
 
 static PyObject* DesktopManagerInternalMoveViewToDesktop(PyObject* self, PyObject* args) {
     PyObject* iHwnd;
-    char* sGuid;
-    PyArg_ParseTuple(args, "sO", &sGuid, &iHwnd);
+    PyObject* sGuid;
+    PyArg_ParseTuple(args, "OO", &sGuid, &iHwnd);
     IApplicationView* view = _GetViewFromPyWindowHwnd(iHwnd);
 
     if (view != nullptr) {
@@ -778,9 +781,9 @@ static PyObject* DesktopManagerInternalGetDesktopIds(PyObject* self) {
 
 
 static PyObject* DesktopManagerInternalGetAdjacentDesktop(PyObject* self, PyObject* args) {
-    char* sGuid;
+    PyObject* sGuid;
     int direction;
-    PyArg_ParseTuple(args, "si", &sGuid, &direction);
+    PyArg_ParseTuple(args, "Oi", &sGuid, &direction);
 
     GUID guid = _ConvertPyGuidToGuid(sGuid);
     if (guid.Data1 == 0) {
@@ -815,8 +818,8 @@ static PyObject* DesktopManagerInternalGetAdjacentDesktop(PyObject* self, PyObje
 
 
 static PyObject* DesktopManagerInternalSwitchDesktop(PyObject* self, PyObject* args) {
-    char* sGuid;
-    PyArg_ParseTuple(args, "s", &sGuid);
+    PyObject* sGuid;
+    PyArg_ParseTuple(args, "O", &sGuid);
 
     GUID guid = _ConvertPyGuidToGuid(sGuid);
     if (guid.Data1 == 0) {
@@ -855,9 +858,9 @@ static PyObject* DesktopManagerInternalCreateDesktop(PyObject* self) {
 
 
 static PyObject* DesktopManagerInternalRemoveDesktop(PyObject* self, PyObject* args) {
-    char* sGuid1;
-    char* sGuid2;
-    PyArg_ParseTuple(args, "s", &sGuid1, &sGuid2);
+    PyObject* sGuid1;
+    PyObject* sGuid2;
+    PyArg_ParseTuple(args, "OO", &sGuid1, &sGuid2);
 
     GUID guid1 = _ConvertPyGuidToGuid(sGuid1);
     GUID guid2 = _ConvertPyGuidToGuid(sGuid2);
@@ -920,9 +923,9 @@ static PyObject* DesktopManagerGetWindowDesktopId(PyObject* self, PyObject* args
 
 
 static PyObject* DesktopManagerMoveWindowToDesktop(PyObject* self, PyObject* args) {
-    char* sGuid;
+    PyObject* sGuid;
     PyObject* iHwnd;
-    PyArg_ParseTuple(args, "sO", &sGuid, &iHwnd);
+    PyArg_ParseTuple(args, "OO", &sGuid, &iHwnd);
 
     HWND hwnd = _ConvertPyHwndToHwnd(iHwnd);
     GUID guid = _ConvertPyGuidToGuid(sGuid);
@@ -955,8 +958,8 @@ static PyObject* GetCurrentDesktopNumber(PyObject* self) {
 
 
 static PyObject* GetDesktopNumberFromId(PyObject* self, PyObject* args) {
-    char* sGuid;
-    PyArg_ParseTuple(args, "s", &sGuid);
+    PyObject* sGuid;
+    PyArg_ParseTuple(args, "O", &sGuid);
 
     GUID guid = _ConvertPyGuidToGuid(sGuid);
 
