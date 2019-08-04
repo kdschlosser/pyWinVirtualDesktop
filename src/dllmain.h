@@ -22,7 +22,7 @@ std::map<HWND, int> listeners;
 IServiceProvider* pServiceProvider = nullptr;
 IVirtualDesktopManagerInternal *pDesktopManagerInternal = nullptr;
 IVirtualDesktopManager *pDesktopManager = nullptr;
-void *viewCollection = nullptr;
+IApplicationViewCollection *viewCollection = nullptr;
 IVirtualDesktopPinnedApps *pinnedApps = nullptr;
 IVirtualDesktopNotificationService* pDesktopNotificationService = nullptr;
 BOOL registeredForNotifications = FALSE;
