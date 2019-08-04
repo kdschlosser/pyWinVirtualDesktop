@@ -1,13 +1,12 @@
 # -*- coding: utf-8 -*-
-
+from __future__ import print_function
 import os
+import sys
 import ctypes
-from ctypes.wintypes import BOOL, HWND, LPARAM, INT, HWND, DWORD, HANDLE
-
+from ctypes.wintypes import BOOL, LPARAM, INT, HWND, DWORD, HANDLE
 
 user32 = ctypes.windll.User32
 NULL = None
-
 
 # BOOL CALLBACK EnumWindowsProc(
 #   _In_ HWND   hwnd,
@@ -132,8 +131,25 @@ def GetProcessName(hwnd):
         ctypes.byref(lpdwSize)
     )
 
-    res = lpExeName.value
+    res = ''
+
+    for i in range(260):
+        if sys.version_info[0] == 2:
+            if lpExeName[i] == '\x00':
+                continue
+        else:
+            if lpExeName[i] == b'\x00':
+                continue
+
+        res += lpExeName[i]
 
     if res:
         res = os.path.split(res)[-1]
     return res
+
+
+if __name__ == '__main__':
+    for hwnd in EnumWindows():
+        name = GetProcessName(hwnd)
+
+        print(name, repr(name))
