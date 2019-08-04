@@ -1365,16 +1365,18 @@ initlibWinVirtualDesktop(void)
     );
 
     if (viewCollection == nullptr) {
-
+        IApplicationViewCollectionOlder *tmpViewCollection = nullptr;
         pServiceProvider->QueryService(
             __uuidof(IApplicationViewCollectionOlder),
-            &viewCollection
+            &tmpViewCollection
         );
 
-        if (viewCollection == nullptr) {
+        if (tmpViewCollection == nullptr) {
             PyErr_SetString(ViewCollectionError, "FATAL ERROR");
             INITERROR;
         }
+
+        viewCollection = tmpViewCollection;
     }
 
     if (pDesktopManagerInternal == nullptr) {
