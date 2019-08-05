@@ -49,7 +49,7 @@ if appveyor_window is not None:
     new_desktop.activate()
     print('IS ACTIVE:', new_desktop.is_active)
 
-    new_desktop.add_window(appveyor_window)
+    # new_desktop.add_window(appveyor_window)
 
     for desktop in pyWinVirtualDesktop:
         if desktop != new_desktop:
@@ -79,8 +79,6 @@ if appveyor_window is not None:
             print('    ON ACTIVE DESKTOP:', window.is_on_active_desktop)
             print('\n')
 
-    print('WINDOW ON ACTIVE:', appveyor_window.is_on_active_desktop)
-    sys.stdout.flush()
 
     # view = appveyor_window.view
     #
