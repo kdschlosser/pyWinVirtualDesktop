@@ -198,6 +198,6 @@ if appveyor_window is not None:
     print('PINNED:', view.pinned)
     sys.stdout.flush()
     time.sleep(0.1)
-    
+
     view.flash()
     view.activate()
