@@ -516,7 +516,7 @@ static PyObject* ApplicationViewSetVirtualDesktopId(PyObject* self, PyObject* ar
     HRESULT res;
     GUID guid;
 
-    dekstop->GetID(&guid);
+    desktop->GetID(&guid);
 
     res = view->SetVirtualDesktopId(guid);
     view->Release();
@@ -1003,7 +1003,7 @@ static PyObject* DesktopManagerMoveWindowToDesktop(PyObject* self, PyObject* arg
     HRESULT res;
     GUID guid;
 
-    desktop->GetID(&guid)
+    desktop->GetID(&guid);
 
     res = pDesktopManager->MoveWindowToDesktop(hwnd, guid);
     return Py_BuildValue("l", res);

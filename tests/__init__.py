@@ -81,7 +81,7 @@ if appveyor_window is not None:
 
     print('WINDOW ON ACTIVE:', appveyor_window.is_on_active_desktop)
     sys.stdout.flush()
-    
+
     view = appveyor_window.view
 
     print('CAN RECEIVE INPUT:', view.can_receive_input)
