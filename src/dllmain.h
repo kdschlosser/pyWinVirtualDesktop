@@ -63,26 +63,27 @@ HWND _ConvertPyHwndToHwnd(PyObject* pyHwnd) {
 
 GUID _ConvertPyGuidToGuid(PyObject* pGuid) {
     GUID guid = {0};
+    char* sGuid;
 
 #if PY_MAJOR_VERSION >= 3
     if (PyUnicode_Check(pGuid)) {
         PyObject * temp_bytes = PyUnicode_AsEncodedString(pGuid, "UTF-8", "strict"); // Owned reference
         if (temp_bytes != NULL) {
             char* tempGuid = PyBytes_AS_STRING(temp_bytes); // Borrowed pointer
-            char* sGuid = strdup(tempGuid);
+            sGuid = strdup(tempGuid);
             Py_DECREF(temp_bytes);
         } else {
             return guid;
         }
     } else if (PyBytes_Check(pGuid)) {
         char* tempGuid = PyBytes_AS_STRING(pGuid); // Borrowed pointer
-        char* sGuid = strdup(tempGuid);
+        sGuid = strdup(tempGuid);
     } else {
         return guid;
     }
 
 #else
-     char* sGuid = PyString_AsString(pGuid);
+     sGuid = PyString_AsString(pGuid);
 
 #endif
 
@@ -854,7 +855,7 @@ static PyObject* DesktopManagerInternalSwitchDesktop(PyObject* self, PyObject* a
 
     IVirtualDesktop* desktop = nullptr;
 
-    pDesktopManagerInternal->FindDesktop(guid, &desktop);
+    pDesktopManagerInternal->FindDesktop(&guid, &desktop);
     if (desktop == nullptr) {
         desktop->Release();
         return Py_BuildValue("l", -2);
