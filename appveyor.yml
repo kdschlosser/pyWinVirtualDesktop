@@ -37,13 +37,14 @@ install:
       #      }
 
       $env:PATH = $env:PYTHON + ';' + $env:PYTHON + "\\Scripts;" + $env:PATH
-      python -m easy_install --upgrade setuptools
-      python -m easy_install wheel
+        -
+  - cmd: python -m pip install --upgrade pip
+  - cmd: python -m pip install --upgrade setuptools
+  - cmd: python -m pip install wheel
 
 
 build_script:
-  - ps: |
-      python setup.py install bdist_egg bdist_wheel
+  - cmd:  python setup.py install bdist_egg bdist_wheel
 
 #after_build:
 #  - ps: >-

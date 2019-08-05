@@ -54,6 +54,7 @@ libWinVirtualDesktop = Extension(
         ('NDEBUG', 1),
         ('_WINDOWS', 1),
         ('_USRDLL', 1),
+        ('PY_SSIZE_T_CLEAN', 1),
         ('LIBWINVIRTUALDESKTOP_EXPORTS', 1),
     ],
     libraries=[
