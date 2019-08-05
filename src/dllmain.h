@@ -237,7 +237,7 @@ IVirtualDesktop* _GetDesktopFromStringId(char* guid) {
 
                 char* sGuid;
 
-                PyArg_Parse(pValue, "s", &sGuid)
+                PyArg_Parse(pValue, "s", &sGuid);
 
                 if (sGuid == guid) {
                     pObjectArray->Release();
