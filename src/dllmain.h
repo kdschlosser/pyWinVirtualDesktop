@@ -215,6 +215,47 @@ GUID _GetDesktopIdFromNumber(int number) {
     return id;
 }
 
+
+IVirtualDesktop* _GetDesktop(GUID guid) {
+    IObjectArray *pObjectArray = nullptr;
+    HRESULT hr = pDesktopManagerInternal->GetDesktops(&pObjectArray);
+
+    if (SUCCEEDED(hr)) {
+        UINT count;
+        hr = pObjectArray->GetCount(&count);
+
+        if (!SUCCEEDED(hr)) {
+            pObjectArray->Release();
+            return -1;
+        }
+
+        for (UINT i = 0; i < count; i++) {
+            IVirtualDesktop *pDesktop = nullptr;
+            pObjectArray->GetAt(
+                i,
+                __uuidof(IVirtualDesktop),
+                (void**)&pDesktop
+            );
+
+            if (pDesktop == nullptr) {
+                continue;
+            }
+
+            GUID id = { 0 };
+
+            if (SUCCEEDED(pDesktop->GetID(&id)) && id == guid) {
+                pObjectArray->Release();
+                return pDesktop;
+            }
+            pDesktop->Release();
+        }
+    }
+    pObjectArray->Release();
+
+    IVirtualDesktop* desktop = nullptr;
+    return desktop;
+}
+
 /*
 LPWSTR _GetApplicationIdFromHwnd(HWND hwnd) {
     // TODO: This should not return a pointer, it should take in a pointer, or return either wstring or std::string
@@ -853,9 +894,10 @@ static PyObject* DesktopManagerInternalSwitchDesktop(PyObject* self, PyObject* a
         return Py_BuildValue("l", -1);
     }
 
-    IVirtualDesktop* desktop = nullptr;
+     nullptr;
 
-    pDesktopManagerInternal->FindDesktop(&guid, &desktop);
+    IVirtualDesktop* desktop = _GetDesktop(guid);
+
     if (desktop == nullptr) {
         desktop->Release();
         return Py_BuildValue("l", -2);
