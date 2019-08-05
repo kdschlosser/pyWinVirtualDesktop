@@ -82,54 +82,54 @@ if appveyor_window is not None:
     print('WINDOW ON ACTIVE:', appveyor_window.is_on_active_desktop)
     sys.stdout.flush()
 
-    view = appveyor_window.view
-
-    print('CAN RECEIVE INPUT:', view.can_receive_input)
-    sys.stdout.flush()
-
-    print('SCALE FACTOR:', view.scale_factor)
-    sys.stdout.flush()
-
-    print('SHOW IN SWITCHERS:', view.show_in_switchers)
-    sys.stdout.flush()
-
-    print('STATE:', view.state)
-    sys.stdout.flush()
-
-    print('SIZE:', view.size)
-    sys.stdout.flush()
-
-    print('POSITION:', view.position)
-    sys.stdout.flush()
-
-    print('IS VISIBLE:', view.is_visible)
-    sys.stdout.flush()
-
-    print('THUMBNAIL HANDLE:', view.thumbnail_handle)
-    sys.stdout.flush()
-
-    print('IS MIRRORED:', view.is_mirrored)
-    sys.stdout.flush()
-
-    print('SPLASH SCREEN:', view.is_splash_screen_presented)
-    sys.stdout.flush()
-
-    print('IS TRAY:', view.is_tray)
-    sys.stdout.flush()
-
-    print('HAS FOCUS:', view.has_focus)
-    sys.stdout.flush()
-
-    view.set_focus()
-    print('HAS FOCUS:', view.has_focus)
-    sys.stdout.flush()
-
-    print('PINNED:', view.pinned)
-    sys.stdout.flush()
-
-    view.pinned = not view.pinned
-    print('PINNED:', view.pinned)
-    sys.stdout.flush()
-
-    view.flash()
-    view.activate()
+    # view = appveyor_window.view
+    #
+    # print('CAN RECEIVE INPUT:', view.can_receive_input)
+    # sys.stdout.flush()
+    #
+    # print('SCALE FACTOR:', view.scale_factor)
+    # sys.stdout.flush()
+    #
+    # print('SHOW IN SWITCHERS:', view.show_in_switchers)
+    # sys.stdout.flush()
+    #
+    # print('STATE:', view.state)
+    # sys.stdout.flush()
+    #
+    # print('SIZE:', view.size)
+    # sys.stdout.flush()
+    #
+    # print('POSITION:', view.position)
+    # sys.stdout.flush()
+    #
+    # print('IS VISIBLE:', view.is_visible)
+    # sys.stdout.flush()
+    #
+    # print('THUMBNAIL HANDLE:', view.thumbnail_handle)
+    # sys.stdout.flush()
+    #
+    # print('IS MIRRORED:', view.is_mirrored)
+    # sys.stdout.flush()
+    #
+    # print('SPLASH SCREEN:', view.is_splash_screen_presented)
+    # sys.stdout.flush()
+    #
+    # print('IS TRAY:', view.is_tray)
+    # sys.stdout.flush()
+    #
+    # print('HAS FOCUS:', view.has_focus)
+    # sys.stdout.flush()
+    #
+    # view.set_focus()
+    # print('HAS FOCUS:', view.has_focus)
+    # sys.stdout.flush()
+    #
+    # print('PINNED:', view.pinned)
+    # sys.stdout.flush()
+    #
+    # view.pinned = not view.pinned
+    # print('PINNED:', view.pinned)
+    # sys.stdout.flush()
+    #
+    # view.flash()
+    # view.activate()

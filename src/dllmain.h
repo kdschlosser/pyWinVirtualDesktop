@@ -1026,7 +1026,6 @@ static PyObject* GetCurrentDesktopNumber(PyObject* self) {
 }
 
 
-
 static PyObject* GetDesktopNumberFromId(PyObject* self, PyObject* args) {
     char* sGuid;
     PyArg_ParseTuple(args, "s", &sGuid);
