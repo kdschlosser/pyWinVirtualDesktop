@@ -893,7 +893,7 @@ static PyObject* DesktopManagerInternalSwitchDesktop(PyObject* self, PyObject* a
 
     GUID guid = _ConvertPyGuidToGuid(sGuid);
     if (guid.Data1 == 0) {
-        return Py_BuildValue("l", -1);
+        return Py_BuildValue("l", -2);
     }
 
      nullptr;
@@ -902,7 +902,7 @@ static PyObject* DesktopManagerInternalSwitchDesktop(PyObject* self, PyObject* a
 
     if (desktop == nullptr) {
         desktop->Release();
-        return Py_BuildValue("l", -2);
+        return Py_BuildValue("l", -1);
     }
 
     HRESULT res;
