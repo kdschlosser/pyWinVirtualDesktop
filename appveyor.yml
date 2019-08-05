@@ -57,7 +57,7 @@ test_script:
       # Run the project tests
       # python -m pip install nose
       # nosetests --verbose tests
-      python tests\__init__.py
+      python tests\test.py
 
 artifacts:
   # Archive the wheel and agg in the ci.appveyor.com build report.

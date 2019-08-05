@@ -33,6 +33,7 @@ kernel32 = ctypes.windll.Kernel32
 _MessageBoxW = user32.MessageBoxW
 _MessageBoxW.restype = INT
 
+
 # BOOL CALLBACK EnumWindowsProc(
 #   _In_ HWND   hwnd,
 #   _In_ LPARAM lParam
@@ -165,6 +166,7 @@ class TestpyWinVirtualDesktop(unittest.TestCase):
     desktop = None
     hwnds = []
     windows = []
+    window = None
 
     @classmethod
     def tearDownClass(cls):
@@ -184,16 +186,16 @@ class TestpyWinVirtualDesktop(unittest.TestCase):
     def test_010_desktop_ids(self):
         for id in pyWinVirtualDesktop.desktop_ids:
             print(str(id))
-            self.desktop_ids += [str(id)]
+            TestpyWinVirtualDesktop.desktop_ids += [str(id)]
 
     def test_020_enumerate_desktops(self):
         for desktop in pyWinVirtualDesktop:
-            self.assertIn(str(desktop.id), self.desktop_ids)
-            self.desktops += [desktop]
+            self.assertIn(str(desktop.id), TestpyWinVirtualDesktop.desktop_ids)
+            TestpyWinVirtualDesktop.desktops += [desktop]
 
     def test_030_desktop_singleton(self):
         for desktop in pyWinVirtualDesktop:
-            self.assertIn(desktop, self.desktops)
+            self.assertIn(desktop, TestpyWinVirtualDesktop.desktops)
 
     def test_040_create_desktop(self):
         desktop = pyWinVirtualDesktop.create_desktop()
@@ -201,7 +203,7 @@ class TestpyWinVirtualDesktop(unittest.TestCase):
 
         self.assertListEqual(
             sorted(desktop_ids),
-            sorted(self.desktop_ids + [desktop.id])
+            sorted(TestpyWinVirtualDesktop.desktop_ids + [desktop.id])
         )
 
         self.desktop = desktop
@@ -211,31 +213,52 @@ class TestpyWinVirtualDesktop(unittest.TestCase):
             if desktop.is_active:
                 break
         else:
-            self.fail('no active desktop')
+            self.fail()
+
+        self.assertEqual(desktop, TestpyWinVirtualDesktop.desktop)
 
     def test_060_set_active_desktop(self):
-        self.desktop.activate()
+        TestpyWinVirtualDesktop.desktop.activate()
+
+        self.assertEqual(pyWinVirtualDesktop.current_desktop, TestpyWinVirtualDesktop.desktop)
+
+    def test_300_enumerate_windows(self):
+        TestpyWinVirtualDesktop.hwnds = list(hwnd for hwnd in EnumWindows())
 
         for desktop in pyWinVirtualDesktop:
-            if desktop.is_active:
-                self.assertListEqual(self.desktop, desktop)
+            for window in desktop:
+                self.assertIn(window.id, TestpyWinVirtualDesktop.hwnds)
+                TestpyWinVirtualDesktop.windows += [window]
+
+    def test_310_window_singleton(self):
+        for desktop in pyWinVirtualDesktop:
+            for window in desktop:
+                self.assertIn(window, TestpyWinVirtualDesktop.windows)
+
+    def test_320_window_create_window(self):
+        MessageBox()
+        for desktop in pyWinVirtualDesktop:
+            for window in desktop:
+                if window.caption == 'UNITTESTS':
+                    TestpyWinVirtualDesktop.window = window
+                    break
+        else:
+            self.fail()
+
+    def test_330_move_window(self):
+        for desktop in pyWinVirtualDesktop:
+            if not desktop.is_active:
+                desktop.add_window(TestpyWinVirtualDesktop.window)
+                self.assertEqual(TestpyWinVirtualDesktop.window.desktop, desktop)
                 break
+        else:
+            self.fail()
 
-    def test_070_enumerate_windows(self):
-        self.hwnds = list(hwnd for hwnd in EnumWindows())
+    def test_340_window_on_active_desktop(self):
+        self.assertEqual(TestpyWinVirtualDesktop.window.is_on_active_desktop, False)
+        self.window.desktop.activate()
+        self.assertEqual(TestpyWinVirtualDesktop.window.is_on_active_desktop, True)
 
-        for desktop in pyWinVirtualDesktop:
-            for window in desktop:
-                self.assertIn(window.id, self.hwnds)
-                self.windows += [window]
-
-    def test_080_window_singleton(self):
-        for desktop in pyWinVirtualDesktop:
-            for window in desktop:
-                self.assertIn(window, self.windows)
-
-
-
-
-
-
+    def test_999_end_test(self):
+        TestpyWinVirtualDesktop.window.destroy()
+        TestpyWinVirtualDesktop.desktop.destroy()

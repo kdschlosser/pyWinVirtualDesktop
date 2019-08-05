@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+    # -*- coding: utf-8 -*-
 from __future__ import print_function
 import sys
 import six
@@ -10,7 +10,27 @@ from .winuser import (
     GetWindowText,
     IsWindow,
     GetProcessName,
-    EnumWindows
+    EnumWindows,
+    DestroyWindow,
+    SW_HIDE,
+    SW_MAXIMIZE,
+    SW_MINIMIZE,
+    SW_RESTORE,
+    SW_SHOW,
+    SW_SHOWNORMAL,
+    SW_SHOWMINIMIZED,
+    SW_SHOWMAXIMIZED,
+    ShowWindow,
+    IsWindowVisible,
+    IsIconic,
+    IsZoomed,
+    SetWindowPos,
+    GetWindowRect,
+    WM_CLOSE,
+    PostMessage,
+    GetFocus,
+    SetFocus,
+    BringWindowToTop
 )
 
 
@@ -146,7 +166,11 @@ class View(object):
     @property
     def has_focus(self):
         if self.is_ok:
-            return libWinVirtualDesktop.ApplicationViewGetFocus(self.id)
+            res = libWinVirtualDesktop.ApplicationViewGetFocus(self.id)
+            if res == 1:
+                return True
+            elif res == 0:
+                return False
 
     def set_focus(self):
         if self.is_ok:
@@ -163,22 +187,38 @@ class View(object):
     @property
     def is_mirrored(self):
         if self.is_ok:
-            return libWinVirtualDesktop.ApplicationViewIsMirrored(self.id)
+            res = libWinVirtualDesktop.ApplicationViewIsMirrored(self.id)
+            if res == 1:
+                return True
+            elif res == 0:
+                return False
 
     @property
     def is_splash_screen_presented(self):
         if self.is_ok:
-            return libWinVirtualDesktop.ApplicationViewIsSplashScreenPresented(self.id)
+            res = libWinVirtualDesktop.ApplicationViewIsSplashScreenPresented(self.id)
+            if res == 1:
+                return True
+            elif res == 0:
+                return False
 
     @property
     def is_tray(self):
         if self.is_ok:
-            return libWinVirtualDesktop.ApplicationViewIsTray(self.id)
+            res = libWinVirtualDesktop.ApplicationViewIsTray(self.id)
+            if res == 1:
+                return True
+            elif res == 0:
+                return False
 
     @property
     def can_receive_input(self):
         if self.is_ok:
-            return libWinVirtualDesktop.ApplicationViewCanReceiveInput(self.id)
+            res = libWinVirtualDesktop.ApplicationViewCanReceiveInput(self.id)
+            if res == 1:
+                return True
+            elif res == 0:
+                return False
 
     @property
     def scale_factor(self):
@@ -215,7 +255,11 @@ class View(object):
     @property
     def is_visible(self):
         if self.is_ok:
-            return libWinVirtualDesktop.ApplicationViewGetVisibility(self.id)
+            res = libWinVirtualDesktop.ApplicationViewGetVisibility(self.id)
+            if res == 1:
+                return True
+            elif res == 0:
+                return False
 
     @property
     def size(self):
@@ -241,7 +285,11 @@ class View(object):
                 )
             )
             if desktop_guid:
-                return libWinVirtualDesktop.DesktopPinnedAppsIsViewPinned(desktop_guid, self.id)
+                res = libWinVirtualDesktop.DesktopPinnedAppsIsViewPinned(desktop_guid, self.id)
+                if res == 1:
+                    return True
+                elif res == 0:
+                    return False
 
     @pinned.setter
     def pinned(self, value):
@@ -263,6 +311,120 @@ class Window(object):
 
     def __init__(self, hwnd):
         self.__hwnd = hwnd
+
+    def bring_to_top(self):
+        if self.is_ok:
+            return bool(BringWindowToTop(self.id))
+
+        return False
+
+    def restore(self):
+        if self.is_ok:
+            if self.is_shown:
+                return bool(ShowWindow(self.id, SW_RESTORE))
+            else:
+                return bool(ShowWindow(self.id, SW_SHOW))
+
+        return False
+
+    def post_message(self, msg, wparam=0, lparam=0):
+        if self.is_ok:
+            return PostMessage(self.id, msg, wparam, lparam)
+        return -1
+
+    def close(self):
+        if self.is_ok:
+            return bool(self.post_message(WM_CLOSE))
+        return False
+
+    @property
+    def has_focus(self):
+        if self.is_ok:
+            return GetFocus() == self.id
+        return False
+
+    def focus(self):
+        if self.is_ok:
+            return SetFocus(self.id) == self.id
+        return False
+
+    @property
+    def is_minimized(self):
+        if self.is_ok and self.is_shown:
+            return bool(IsIconic(self.id))
+        return False
+
+    @is_minimized.setter
+    def is_minimized(self, value):
+        if self.is_ok:
+            if self.is_shown:
+                if value:
+                    ShowWindow(self.id, SW_MINIMIZE)
+                else:
+                    ShowWindow(self.id, SW_RESTORE)
+            else:
+                if value:
+                    ShowWindow(self.id, SW_SHOWMINIMIZED)
+                else:
+                    ShowWindow(self.id, SW_RESTORE)
+
+    @property
+    def is_maximized(self):
+        if self.is_ok and self.is_shown:
+            return bool(IsZoomed(self.id))
+        return False
+
+    @is_maximized.setter
+    def is_maximized(self, value):
+        if self.is_ok:
+            if self.is_shown:
+                if value:
+                    ShowWindow(self.id, SW_MAXIMIZE)
+                else:
+                    ShowWindow(self.id, SW_RESTORE)
+            else:
+                if value:
+                    ShowWindow(self.id, SW_SHOWMAXIMIZED)
+                else:
+                    ShowWindow(self.id, SW_RESTORE)
+
+    @property
+    def is_shown(self):
+        if self.is_ok:
+            return bool(IsWindowVisible(self.id))
+        return False
+
+    @is_shown.setter
+    def is_shown(self, value):
+        if self.is_ok:
+            if not value and self.is_shown:
+                ShowWindow(self.id, SW_HIDE)
+            elif value and not self.is_shown:
+                ShowWindow(self.id, SW_SHOW)
+
+    @property
+    def size(self):
+        if self.is_ok:
+            rect = GetWindowRect(self.id)
+            return rect.right - rect.left, rect.bottom - rect.top
+        return None, None
+
+    @size.setter
+    def size(self, value):
+        if self.is_ok:
+            SetWindowPos(self.id, size=value)
+
+    @property
+    def position(self):
+        if self.is_ok:
+            rect = GetWindowRect(self.id)
+            return rect.left, rect.top
+        return None, None
+
+    @position.setter
+    def position(self, value):
+        if self.is_ok:
+            SetWindowPos(self.id, pos=value)
 
     @property
     def id(self):
@@ -293,7 +455,11 @@ class Window(object):
     @property
     def is_on_active_desktop(self):
         if self.is_ok:
-            return libWinVirtualDesktop.DesktopManagerIsWindowOnCurrentVirtualDesktop(self.id)
+            res = libWinVirtualDesktop.DesktopManagerIsWindowOnCurrentVirtualDesktop(self.id)
+            if res == 1:
+                return True
+            elif res == 0:
+                return False
 
     @property
     def process_name(self):
@@ -303,6 +469,10 @@ class Window(object):
     @property
     def view(self):
         return View(self.id)
+
+    def destroy(self):
+        if self.is_ok:
+            return DestroyWindow(self.id)
 
     def move_to_desktop(self, desktop):
         if isinstance(desktop, Desktop):
@@ -386,7 +556,7 @@ class Desktop(object):
     def activate(self):
         return libWinVirtualDesktop.DesktopManagerInternalSwitchDesktop(self.id)
 
-    def delete(self):
+    def destroy(self):
         for desktop_id in pyWinVirtualDesktop.desktop_ids:
             if desktop_id != self.id:
                 break
