@@ -191,6 +191,64 @@ GUID _GetDesktopIdFromNumber(int number) {
     return id;
 }
 
+IVirtualDesktop* _GetDesktopFromStringId(char* guid) {
+    IObjectArray *pObjectArray = nullptr;
+    HRESULT hr = pDesktopManagerInternal->GetDesktops(&pObjectArray);
+
+    if (SUCCEEDED(hr)) {
+        UINT count;
+        hr = pObjectArray->GetCount(&count);
+
+        if (!SUCCEEDED(hr)) {
+            pObjectArray->Release();
+
+            IVirtualDesktop* desktop = nullptr;
+            return desktop;
+        }
+
+        for (UINT i = 0; i < count; i++) {
+            IVirtualDesktop *pDesktop = nullptr;
+            pObjectArray->GetAt(
+                i,
+                __uuidof(IVirtualDesktop),
+                (void**)&pDesktop
+            );
+
+            if (pDesktop == nullptr) {
+                continue;
+            }
+
+            GUID id = { 0 };
+
+            if (SUCCEEDED(pDesktop->GetID(&id))) {
+                wchar_t* pWCBuffer;
+                ::StringFromCLSID((const IID) id, &pWCBuffer);
+
+                size_t count;
+                char *pMBBuffer = (char *)malloc(39);
+
+                ::wcstombs_s(&count, pMBBuffer, (size_t)39, pWCBuffer, (size_t)39);
+
+                if (pMBBuffer == guid) {
+                    free(pMBBuffer);
+                    pObjectArray->Release();
+                    return pDesktop;
+
+                }
+                if (pMBBuffer) {
+                    free(pMBBuffer);
+                }
+
+            }
+            pDesktop->Release();
+        }
+    }
+    pObjectArray->Release();
+
+    IVirtualDesktop* desktop = nullptr;
+    return desktop;
+}
+
 
 IVirtualDesktop* _GetDesktop(GUID guid) {
     IObjectArray *pObjectArray = nullptr;
@@ -867,14 +925,8 @@ static PyObject* DesktopManagerInternalSwitchDesktop(PyObject* self, PyObject* a
     char* sGuid;
     PyArg_ParseTuple(args, "s", &sGuid);
 
-    GUID guid = _ConvertPyGuidToGuid(sGuid);
-    if (guid.Data1 == 0) {
-        return Py_BuildValue("l", -2);
-    }
 
-     nullptr;
-
-    IVirtualDesktop* desktop = _GetDesktop(guid);
+    IVirtualDesktop* desktop _GetDesktopFromStringId(sGuid);
 
     if (desktop == nullptr) {
         desktop->Release();
