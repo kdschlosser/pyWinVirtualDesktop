@@ -854,10 +854,10 @@ static PyObject* DesktopManagerInternalSwitchDesktop(PyObject* self, PyObject* a
 
     IVirtualDesktop* desktop = nullptr;
 
-    pDesktopManagerInternal->FindDesktop(&guid, &desktop);
+    pDesktopManagerInternal->FindDesktop(guid, &desktop);
     if (desktop == nullptr) {
         desktop->Release();
-        return Py_BuildValue("l", -1);
+        return Py_BuildValue("l", -2);
     }
 
     HRESULT res;
