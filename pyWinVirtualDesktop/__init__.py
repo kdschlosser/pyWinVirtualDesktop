@@ -3,6 +3,7 @@ from __future__ import print_function
 import sys
 import six
 import traceback
+from .config import Config
 
 import libWinVirtualDesktop as _libWinVirtualDesktop
 from .winuser import (
@@ -39,6 +40,7 @@ class Module(object):
 
         self.Desktop = Desktop
         self.Window = Window
+        self.config = Config
 
     @property
     def current_desktop(self):
@@ -77,6 +79,12 @@ class Module(object):
     def unregister_notification_callback(self, cookie):
         pass
 
+    def __contains__(self, desktop):
+        if isinstance(desktop, Desktop):
+            desktop = desktop.id
+
+        return desktop in self.desktop_ids
+
     def __len__(self):
         return libWinVirtualDesktop.DesktopManagerInternalGetCount()
 
@@ -96,7 +104,6 @@ class InstanceSingleton(type):
         cls._instances = {}
 
     def __call__(cls, id, **kwargs):
-
         key = [id] + list(kwargs[k] for k in sorted(kwargs.keys()))
         key = tuple(key)
 
@@ -312,8 +319,16 @@ class Desktop(object):
         self._id = desktop_guid
 
     @property
+    def name(self):
+        return pyWinVirtualDesktop.config.get_name(self.id)
+
+    @name.setter
+    def name(self, value):
+        pyWinVirtualDesktop.config.set_name(self.id, value)
+
+    @property
     def number(self):
-        return libWinVirtualDesktop.GetDesktopNumberFromId(self.id)
+        return pyWinVirtualDesktop.desktop_ids.index(self.id) + 1
 
     @property
     def id(self):
@@ -336,6 +351,15 @@ class Desktop(object):
             window = Window(window)
 
         window.move_to_desktop(self)
+
+    def __contains__(self, window):
+        if isinstance(window, Window):
+            window = window.id
+
+        desktop_guid = (
+            libWinVirtualDesktop.DesktopManagerGetWindowDesktopId(window)
+        )
+        return desktop_guid == self.id
 
     def __iter__(self):
         for hwnd in EnumWindows():

@@ -91,10 +91,8 @@ if appveyor_window is not None:
     sys.stdout.flush()
     time.sleep(0.1)
 
-    new_desktop.activate()
+    print('ACTIVATE RESPONSE:', new_desktop.activate())
     print('IS ACTIVE:', new_desktop.is_active)
-    sys.stdout.flush()
-    time.sleep(0.1)
 
     print('DEKSTOP NUMBER:', new_desktop.number)
     sys.stdout.flush()
@@ -111,25 +109,6 @@ if appveyor_window is not None:
 
     for desktop in pyWinVirtualDesktop:
         print('DESKTOP ID:', desktop.id)
-        sys.stdout.flush()
-        time.sleep(0.1)
-
-        desktop_to_left = desktop.desktop_to_left
-        desktop_to_right = desktop.desktop_to_right
-
-        if desktop_to_left is None:
-            print('DESKTOP TO LEFT: None')
-        else:
-            print('DESKTOP TO LEFT:', desktop_to_left.id)
-        sys.stdout.flush()
-        time.sleep(0.1)
-
-        if desktop_to_right is None:
-            print('DESKTOP TO RIGHT: None')
-        else:
-            print('DESKTOP TO RIGHT:', desktop_to_right.id)
-        sys.stdout.flush()
-        time.sleep(0.1)
 
     print('WINDOW ON ACTIVE:', appveyor_window.is_on_active_desktop)
     sys.stdout.flush()
