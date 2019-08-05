@@ -229,20 +229,15 @@ IVirtualDesktop* _GetDesktopFromStringId(char* guid) {
 
                 ::wcstombs_s(&count, pMBBuffer, (size_t)39, pWCBuffer, (size_t)39);
 
-                PyObject* pValue = Py_BuildValue("s", pMBBuffer);
-
-                if (pMBBuffer) {
+                if (strcmp(guid ,pMBBuffer) == 0) {
                     free(pMBBuffer);
-                }
-
-                char* sGuid;
-
-                PyArg_Parse(pValue, "s", &sGuid);
-
-                if (sGuid == guid) {
                     pObjectArray->Release();
                     return pDesktop;
 
+                }
+
+                if (pMBBuffer) {
+                    free(pMBBuffer);
                 }
             }
             pDesktop->Release();
