@@ -885,7 +885,7 @@ static PyObject* DesktopManagerInternalGetAdjacentDesktop(PyObject* self, PyObje
 
     IVirtualDesktop* neighbor = nullptr;
 
-    pDesktopManagerInternal->GetAdjacentDesktop(desktop, (AdjacentDesktop)direction, &neighbor);
+    pDesktopManagerInternal->GetAdjacentDesktop(desktop, direction, &neighbor);
 
     if (neighbor == nullptr) {
         desktop->Release();
@@ -896,10 +896,11 @@ static PyObject* DesktopManagerInternalGetAdjacentDesktop(PyObject* self, PyObje
     GUID neighbor_guid;
     neighbor->GetID(&neighbor_guid);
 
+    PyObject* res = _ConvertGuidToPyGuid(neighbor_guid);
+
     desktop->Release();
     neighbor->Release();
-
-    return _ConvertGuidToPyGuid(neighbor_guid);
+    return  res;
 }
 
 
