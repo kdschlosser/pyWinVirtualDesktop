@@ -226,7 +226,9 @@ IVirtualDesktop* _GetDesktop(GUID guid) {
 
         if (!SUCCEEDED(hr)) {
             pObjectArray->Release();
-            return -1;
+
+            IVirtualDesktop* desktop = nullptr;
+            return desktop;
         }
 
         for (UINT i = 0; i < count; i++) {
