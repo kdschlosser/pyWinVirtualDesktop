@@ -9,8 +9,6 @@ appveyor_window = None
 
 for desktop in pyWinVirtualDesktop:
     print('DESKTOP ID:', desktop.id)
-    sys.stdout.flush()
-    time.sleep(0.1)
 
     desktop_to_left = desktop.desktop_to_left
     desktop_to_right = desktop.desktop_to_right
@@ -20,24 +18,14 @@ for desktop in pyWinVirtualDesktop:
     else:
         print('DESKTOP TO LEFT:', desktop_to_left.id)
 
-    sys.stdout.flush()
-    time.sleep(0.1)
-
     if desktop_to_right is None:
         print('DESKTOP TO RIGHT: None')
     else:
         print('DESKTOP TO RIGHT:', desktop_to_right.id)
 
-    sys.stdout.flush()
-    time.sleep(0.1)
-
     print('DESKTOP IS ACTIVE:', desktop.is_active)
-    sys.stdout.flush()
-    time.sleep(0.1)
 
     print('DESKTOP WINDOWS:')
-    sys.stdout.flush()
-    time.sleep(0.1)
     for window in desktop:
         if sys.version_info[0] == 2:
             if window.process_name == 'Appveyor.BuildAgent.Interactive.exe':
@@ -47,57 +35,34 @@ for desktop in pyWinVirtualDesktop:
                 appveyor_window = window
 
         print('    HANDLE:', window.id)
-        sys.stdout.flush()
-        time.sleep(0.1)
         print('    CAPTION:', repr(window.text))
-        sys.stdout.flush()
-        time.sleep(0.1)
         print('    PROCESS NAME:', repr(window.process_name))
-        sys.stdout.flush()
-        time.sleep(0.1)
         print('    ON ACTIVE DESKTOP:', window.is_on_active_desktop)
-        sys.stdout.flush()
-        time.sleep(0.1)
         print('\n')
-        sys.stdout.flush()
-        time.sleep(0.1)
+
 
 if appveyor_window is not None:
     print('FOUND APPVEYOR')
-    sys.stdout.flush()
-    time.sleep(0.1)
 
     new_desktop = pyWinVirtualDesktop.create_desktop()
     print('NEW DESKTOP:', new_desktop.id)
-    sys.stdout.flush()
-    time.sleep(0.1)
 
     print('IS ACTIVE:', new_desktop.is_active)
-    sys.stdout.flush()
-    time.sleep(0.1)
+
     new_desktop.activate()
 
     print('IS ACTIVE:', new_desktop.is_active)
-    sys.stdout.flush()
-    time.sleep(0.1)
 
-    # new_desktop.add_window(appveyor_window)
+    new_desktop.add_window(appveyor_window)
 
     for desktop in pyWinVirtualDesktop:
         if desktop != new_desktop:
             desktop.activate()
         print('DESKTOP ID:', desktop.id)
-        sys.stdout.flush()
-        time.sleep(0.1)
+
         print('IS ACTIVE:', desktop.is_active)
-        sys.stdout.flush()
-        time.sleep(0.1)
         print('DESKTOP NUMBER:', desktop.number)
-        sys.stdout.flush()
-        time.sleep(0.1)
         print('DESKTOP NAME:', desktop.name)
-        sys.stdout.flush()
-        time.sleep(0.1)
 
         desktop_to_left = desktop.desktop_to_left
         desktop_to_right = desktop.desktop_to_right
@@ -107,33 +72,17 @@ if appveyor_window is not None:
         else:
             print('DESKTOP TO LEFT:', desktop_to_left.id)
 
-        sys.stdout.flush()
-        time.sleep(0.1)
-
         if desktop_to_right is None:
             print('DESKTOP TO RIGHT: None')
         else:
             print('DESKTOP TO RIGHT:', desktop_to_right.id)
 
-        sys.stdout.flush()
-        time.sleep(0.1)
-
         for window in desktop:
             print('    HANDLE:', window.id)
-            sys.stdout.flush()
-            time.sleep(0.1)
             print('    CAPTION:', repr(window.text))
-            sys.stdout.flush()
-            time.sleep(0.1)
             print('    PROCESS NAME:', repr(window.process_name))
-            sys.stdout.flush()
-            time.sleep(0.1)
             print('    ON ACTIVE DESKTOP:', window.is_on_active_desktop)
-            sys.stdout.flush()
-            time.sleep(0.1)
             print('\n')
-            sys.stdout.flush()
-            time.sleep(0.1)
 
     # view = appveyor_window.view
     #
