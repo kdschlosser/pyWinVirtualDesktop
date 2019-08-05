@@ -38,17 +38,18 @@ install:
 
       $env:PATH = $env:PYTHON + ';' + $env:PYTHON + "\\Scripts;" + $env:PATH
       python -m easy_install --upgrade setuptools
+      python -m easy_install wheel
 
 
 build_script:
   - ps: |
-      python setup.py install
-#
+      python setup.py install bdist_egg bdist_wheel
+
 #after_build:
 #  - ps: >-
 #      $whl = get-childitem dist\*.whl;
 #      $env:PYTHON/python -m pip install $whl
-#
+
 
 test_script:
  - ps: |
@@ -57,12 +58,12 @@ test_script:
       # nosetests --verbose tests
       python tests\__init__.py
 
-#artifacts:
-#  # Archive the wheel and agg in the ci.appveyor.com build report.
-#  - path: dist/*.whl
-#    name: wheel
-#  - path: dist/*.egg
-#    name: egg
+artifacts:
+  # Archive the wheel and agg in the ci.appveyor.com build report.
+  - path: dist/*.whl
+    name: wheel
+  - path: dist/*.egg
+    name: egg
 
 deploy_script:
   - ps: |
