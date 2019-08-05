@@ -925,8 +925,7 @@ static PyObject* DesktopManagerInternalSwitchDesktop(PyObject* self, PyObject* a
     char* sGuid;
     PyArg_ParseTuple(args, "s", &sGuid);
 
-
-    IVirtualDesktop* desktop _GetDesktopFromStringId(sGuid);
+    IVirtualDesktop* desktop = _GetDesktopFromStringId(sGuid);
 
     if (desktop == nullptr) {
         desktop->Release();
