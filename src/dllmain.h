@@ -85,58 +85,21 @@ GUID _ConvertPyGuidToGuid(PyObject* pGuid) {
      sGuid = PyString_AsString(pGuid);
 
 #endif
-    IObjectArray *pObjectArray = nullptr;
-    HRESULT hr = pDesktopManagerInternal->GetDesktops(&pObjectArray);
-    int found = -1;
-
-    if (!SUCCEEDED(hr)) {
-        pObjectArray->Release();
-        return guid;
-    }
-
-    UINT count;
-    hr = pObjectArray->GetCount(&count);
-
-    if (!SUCCEEDED(hr)) {
-        pObjectArray->Release();
-        return guid;
-    }
-
-    for (UINT i = 0; i < count; i++) {
-        IVirtualDesktop *pDesktop = nullptr;
-
-        if (FAILED(pObjectArray->GetAt(i, __uuidof(IVirtualDesktop), (void**)&pDesktop))) {
-            continue;
-        }
-
-        GUID tempGuid = {0};
-
-        if (SUCCEEDED(pDesktop->GetID(&tempGuid))) {
-
-            wchar_t* pWCBuffer;
-            ::StringFromCLSID((const IID) tempGuid, &pWCBuffer);
-
-            size_t count;
-            char *pMBBuffer = (char *)malloc(39);
-
-            ::wcstombs_s(&count, pMBBuffer, (size_t)39, pWCBuffer, (size_t)39);
-
-            if (sGuid == pMBBuffer) {
-                free(pMBBuffer);
-                pDesktop->Release();
-                pObjectArray->Release();
-
-                return tempGuid;
-            }
-
-            if (pMBBuffer) {
-                free(pMBBuffer);
-            }
-        }
-
-        pDesktop->Release();
-    }
-    pObjectArray->Release();
+    sscanf_s(
+        sGuid,
+        "{%8x-%4hx-%4hx-%2hhx%2hhx-%2hhx%2hhx%2hhx%2hhx%2hhx%2hhx}",
+        &guid.Data1,
+        &guid.Data2,
+        &guid.Data3,
+        &guid.Data4[0],
+        &guid.Data4[1],
+        &guid.Data4[2],
+        &guid.Data4[3],
+        &guid.Data4[4],
+        &guid.Data4[5],
+        &guid.Data4[6],
+        &guid.Data4[7]
+    );
 
     return guid;
 }
