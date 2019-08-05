@@ -229,7 +229,7 @@ IVirtualDesktop* _GetDesktopFromStringId(char* guid) {
 
                 ::wcstombs_s(&count, pMBBuffer, (size_t)39, pWCBuffer, (size_t)39);
 
-                if (strcmp(guid ,pMBBuffer) == 0) {
+                if (strcmp(guid, pMBBuffer) == 0) {
                     free(pMBBuffer);
                     pObjectArray->Release();
                     return pDesktop;
@@ -503,19 +503,25 @@ static PyObject* ApplicationViewSetVirtualDesktopId(PyObject* self, PyObject* ar
     HWND hwnd;
     char* sGuid;
     PyArg_ParseTuple(args, "ls", &hwnd, &sGuid);
-    IApplicationView* view = _GetViewFromPyWindowHwnd(hwnd);
 
-    if (view != nullptr) {
-        GUID guid = _ConvertPyGuidToGuid(sGuid);
-        if (guid.Data1 != 0) {
-            HRESULT res;
-            res = view->SetVirtualDesktopId(guid);
-            view->Release();
-            return Py_BuildValue("i", res);
-        }
+    IApplicationView* view = _GetViewFromPyWindowHwnd(hwnd);
+    IVirtualDesktop* desktop = _GetDesktopFromStringId(sGuid);
+
+    if ((view == nullptr) || (desktop == nullptr)) {
+        view->Release();
+        desktop->Release();
+        return Py_BuildValue("i", -1);
     }
+
+    HRESULT res;
+    GUID guid;
+
+    dekstop->GetID(&guid);
+
+    res = view->SetVirtualDesktopId(guid);
     view->Release();
-    return Py_BuildValue("i", -1);
+    desktop->Release();
+    return Py_BuildValue("i", res);
 }
 
 
@@ -741,18 +747,10 @@ static PyObject* DesktopIsViewVisible(PyObject* self, PyObject* args) {
     HWND hwnd;
     PyArg_ParseTuple(args, "sl", &sGuid, &hwnd);
 
-    GUID guid = _ConvertPyGuidToGuid(sGuid);
+    IVirtualDesktop* desktop = _GetDesktopFromStringId(sGuid);
     IApplicationView* view = _GetViewFromPyWindowHwnd(hwnd);
 
-    if ((view == nullptr) || (guid.Data1 == 0)) {
-        view->Release();
-        return Py_BuildValue("i", -1);
-    }
-
-    IVirtualDesktop* desktop = nullptr;
-
-    pDesktopManagerInternal->FindDesktop(&guid, &desktop);
-    if (desktop == nullptr) {
+    if ((view == nullptr) || (desktop == nullptr)) {
         view->Release();
         desktop->Release();
         return Py_BuildValue("i", -1);
@@ -778,32 +776,21 @@ static PyObject* DesktopManagerInternalMoveViewToDesktop(PyObject* self, PyObjec
     HWND hwnd;
     char* sGuid;
     PyArg_ParseTuple(args, "sl", &sGuid, &hwnd);
+
     IApplicationView* view = _GetViewFromPyWindowHwnd(hwnd);
+    IVirtualDesktop* desktop = _GetDesktopFromStringId(sGuid);
 
-    if (view != nullptr) {
-        GUID guid = _ConvertPyGuidToGuid(sGuid);
-        if (guid.Data1 == 0) {
-            view->Release();
-            return Py_BuildValue("i", -1);
-        }
-
-        IVirtualDesktop* desktop = nullptr;
-
-        pDesktopManagerInternal->FindDesktop(&guid, &desktop);
-        if (desktop == nullptr) {
-            view->Release();
-            desktop->Release();
-            return Py_BuildValue("i", -1);
-        }
-
-        HRESULT res;
-        res = pDesktopManagerInternal->MoveViewToDesktop(view, desktop);
+    if ((view == nullptr) || (desktop == nullptr)) {
         view->Release();
         desktop->Release();
-        return Py_BuildValue("i", res);
+        return Py_BuildValue("i", -1);
     }
+
+    HRESULT res;
+    res = pDesktopManagerInternal->MoveViewToDesktop(view, desktop);
     view->Release();
-    return Py_BuildValue("i", -1);
+    desktop->Release();
+    return Py_BuildValue("i", res);
 }
 
 
@@ -889,18 +876,13 @@ static PyObject* DesktopManagerInternalGetAdjacentDesktop(PyObject* self, PyObje
     int direction;
     PyArg_ParseTuple(args, "si", &sGuid, &direction);
 
-    GUID guid = _ConvertPyGuidToGuid(sGuid);
-    if (guid.Data1 == 0) {
-        return Py_BuildValue("s", "");
-    }
+    IVirtualDesktop* desktop = _GetDesktopFromStringId(sGuid);
 
-    IVirtualDesktop* desktop = nullptr;
-
-    pDesktopManagerInternal->FindDesktop(&guid, &desktop);
     if (desktop == nullptr) {
         desktop->Release();
         return Py_BuildValue("s", "");
     }
+
     IVirtualDesktop* neighbor = nullptr;
 
     pDesktopManagerInternal->GetAdjacentDesktop(desktop, (AdjacentDesktop)direction, &neighbor);
@@ -959,17 +941,8 @@ static PyObject* DesktopManagerInternalRemoveDesktop(PyObject* self, PyObject* a
     char* sGuid2;
     PyArg_ParseTuple(args, "ss", &sGuid1, &sGuid2);
 
-    GUID guid1 = _ConvertPyGuidToGuid(sGuid1);
-    GUID guid2 = _ConvertPyGuidToGuid(sGuid2);
-    if ((guid1.Data1 == 0) || (guid2.Data1 == 0)) {
-        return Py_BuildValue("l", -1);
-    }
-
-    IVirtualDesktop* desktop1 = nullptr;
-    IVirtualDesktop* desktop2 = nullptr;
-
-    pDesktopManagerInternal->FindDesktop(&guid1, &desktop1);
-    pDesktopManagerInternal->FindDesktop(&guid2, &desktop2);
+    IVirtualDesktop* desktop1 = _GetDesktopFromStringId(sGuid1);
+    IVirtualDesktop* desktop2 = _GetDesktopFromStringId(sGuid2);
 
     if ((desktop1 == nullptr) || (desktop2 == nullptr)) {
         desktop1->Release();
@@ -1020,13 +993,18 @@ static PyObject* DesktopManagerMoveWindowToDesktop(PyObject* self, PyObject* arg
     HWND hwnd;
     PyArg_ParseTuple(args, "sl", &sGuid, &hwnd);
 
-    GUID guid = _ConvertPyGuidToGuid(sGuid);
+    IVirtualDesktop* desktop = _GetDesktopFromStringId(sGuid);
 
-    if ((hwnd == 0) || (guid.Data1 == 0)) {
+    if (desktop == nullptr) {
+        desktop->Release();
         return Py_BuildValue("l", -1);
     }
 
     HRESULT res;
+    GUID guid;
+
+    desktop->GetID(&guid)
+
     res = pDesktopManager->MoveWindowToDesktop(hwnd, guid);
     return Py_BuildValue("l", res);
 }
@@ -1053,14 +1031,8 @@ static PyObject* GetDesktopNumberFromId(PyObject* self, PyObject* args) {
     char* sGuid;
     PyArg_ParseTuple(args, "s", &sGuid);
 
-    GUID guid = _ConvertPyGuidToGuid(sGuid);
+    IVirtualDesktop* desktop = _GetDesktopFromStringId(sGuid);
 
-    if (guid.Data1 == 0) {
-        return Py_BuildValue("l", -1);
-    }
-
-    IVirtualDesktop* desktop = nullptr;
-    pDesktopManagerInternal->FindDesktop(&guid, &desktop);
     if (desktop == nullptr) {
         desktop->Release();
         return Py_BuildValue("l", -1);
