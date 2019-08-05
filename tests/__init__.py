@@ -46,6 +46,7 @@ if appveyor_window is not None:
 
     new_desktop = pyWinVirtualDesktop.create_desktop()
     print('NEW DESKTOP:', new_desktop.id)
+    print(pyWinVirtualDesktop.desktop_ids)
 
     print('IS ACTIVE:', new_desktop.is_active)
 

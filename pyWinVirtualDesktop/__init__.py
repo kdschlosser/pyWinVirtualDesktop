@@ -339,16 +339,20 @@ class Desktop(object):
         desktop_ids = pyWinVirtualDesktop.desktop_ids
         index = desktop_ids.index(self.id)
 
-        if len(desktop_ids) - 1 > index > 0:
+        try:
             return Desktop(desktop_ids[index - 1])
+        except IndexError:
+            pass
 
     @property
     def desktop_to_right(self):
         desktop_ids = pyWinVirtualDesktop.desktop_ids
         index = desktop_ids.index(self.id)
 
-        if len(desktop_ids) - 2 > index > -1:
+        try:
             return Desktop(desktop_ids[index + 1])
+        except IndexError:
+            pass
 
     def add_window(self, window):
         if not isinstance(window, Window):
