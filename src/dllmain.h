@@ -61,32 +61,8 @@ HWND _ConvertPyHwndToHwnd(PyObject* pyHwnd) {
 }
 */
 
-GUID _ConvertPyGuidToGuid(PyObject* pGuid) {
+GUID _ConvertPyGuidToGuid(char* sGuid) {
     GUID guid = {0};
-    char* sGuid;
-
-#if PY_MAJOR_VERSION >= 3
-    if (PyUnicode_Check(pGuid)) {
-        PyObject * temp_bytes = PyUnicode_AsEncodedString(pGuid, "UTF-8", "strict"); // Owned reference
-        if (temp_bytes != NULL) {
-            char* tempGuid = PyBytes_AS_STRING(temp_bytes); // Borrowed pointer
-            sGuid = strdup(tempGuid);
-            Py_DECREF(temp_bytes);
-        } else {
-            return guid;
-        }
-    } else if (PyBytes_Check(pGuid)) {
-        char* tempGuid = PyBytes_AS_STRING(pGuid); // Borrowed pointer
-        sGuid = strdup(tempGuid);
-    } else {
-        return guid;
-    }
-
-#else
-     sGuid = PyString_AsString(pGuid);
-
-#endif
-
     ::UuidFromString((RPC_CSTR)sGuid, &guid);
 
     return guid;
@@ -467,8 +443,8 @@ static PyObject* ApplicationViewGetVirtualDesktopId(PyObject* self, PyObject* ar
 
 static PyObject* ApplicationViewSetVirtualDesktopId(PyObject* self, PyObject* args) {
     HWND hwnd;
-    PyObject* sGuid;
-    PyArg_ParseTuple(args, "lO", &hwnd, &sGuid);
+    char* sGuid;
+    PyArg_ParseTuple(args, "ls", &hwnd, &sGuid);
     IApplicationView* view = _GetViewFromPyWindowHwnd(hwnd);
 
     if (view != nullptr) {
@@ -703,9 +679,9 @@ RefreshCollection()
 // IVirtualDesktop -----------------------------------------------------------
 
 static PyObject* DesktopIsViewVisible(PyObject* self, PyObject* args) {
-    PyObject* sGuid;
+    char* sGuid;
     HWND hwnd;
-    PyArg_ParseTuple(args, "Ol", &sGuid, &hwnd);
+    PyArg_ParseTuple(args, "sl", &sGuid, &hwnd);
 
     GUID guid = _ConvertPyGuidToGuid(sGuid);
     IApplicationView* view = _GetViewFromPyWindowHwnd(hwnd);
@@ -742,8 +718,8 @@ static PyObject* DesktopManagerInternalGetCount(PyObject* self) {
 
 static PyObject* DesktopManagerInternalMoveViewToDesktop(PyObject* self, PyObject* args) {
     HWND hwnd;
-    PyObject* sGuid;
-    PyArg_ParseTuple(args, "Ol", &sGuid, &hwnd);
+    char* sGuid;
+    PyArg_ParseTuple(args, "sl", &sGuid, &hwnd);
     IApplicationView* view = _GetViewFromPyWindowHwnd(hwnd);
 
     if (view != nullptr) {
@@ -851,9 +827,9 @@ static PyObject* DesktopManagerInternalGetDesktopIds(PyObject* self) {
 
 
 static PyObject* DesktopManagerInternalGetAdjacentDesktop(PyObject* self, PyObject* args) {
-    PyObject* sGuid;
+    char* sGuid;
     int direction;
-    PyArg_ParseTuple(args, "Oi", &sGuid, &direction);
+    PyArg_ParseTuple(args, "si", &sGuid, &direction);
 
     GUID guid = _ConvertPyGuidToGuid(sGuid);
     if (guid.Data1 == 0) {
@@ -888,8 +864,8 @@ static PyObject* DesktopManagerInternalGetAdjacentDesktop(PyObject* self, PyObje
 
 
 static PyObject* DesktopManagerInternalSwitchDesktop(PyObject* self, PyObject* args) {
-    PyObject* sGuid;
-    PyArg_ParseTuple(args, "O", &sGuid);
+    char* sGuid;
+    PyArg_ParseTuple(args, "s", &sGuid);
 
     GUID guid = _ConvertPyGuidToGuid(sGuid);
     if (guid.Data1 == 0) {
@@ -929,9 +905,9 @@ static PyObject* DesktopManagerInternalCreateDesktop(PyObject* self) {
 
 
 static PyObject* DesktopManagerInternalRemoveDesktop(PyObject* self, PyObject* args) {
-    PyObject* sGuid1;
-    PyObject* sGuid2;
-    PyArg_ParseTuple(args, "OO", &sGuid1, &sGuid2);
+    char* sGuid1;
+    char* sGuid2;
+    PyArg_ParseTuple(args, "ss", &sGuid1, &sGuid2);
 
     GUID guid1 = _ConvertPyGuidToGuid(sGuid1);
     GUID guid2 = _ConvertPyGuidToGuid(sGuid2);
@@ -990,9 +966,9 @@ static PyObject* DesktopManagerGetWindowDesktopId(PyObject* self, PyObject* args
 
 
 static PyObject* DesktopManagerMoveWindowToDesktop(PyObject* self, PyObject* args) {
-    PyObject* sGuid;
+    char* sGuid;
     HWND hwnd;
-    PyArg_ParseTuple(args, "Ol", &sGuid, &hwnd);
+    PyArg_ParseTuple(args, "sl", &sGuid, &hwnd);
 
     GUID guid = _ConvertPyGuidToGuid(sGuid);
 
@@ -1024,8 +1000,8 @@ static PyObject* GetCurrentDesktopNumber(PyObject* self) {
 
 
 static PyObject* GetDesktopNumberFromId(PyObject* self, PyObject* args) {
-    PyObject* sGuid;
-    PyArg_ParseTuple(args, "O", &sGuid);
+    char* sGuid;
+    PyArg_ParseTuple(args, "s", &sGuid);
 
     GUID guid = _ConvertPyGuidToGuid(sGuid);
 
