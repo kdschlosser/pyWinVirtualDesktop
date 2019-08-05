@@ -336,15 +336,19 @@ class Desktop(object):
 
     @property
     def desktop_to_left(self):
-        desktop_guid = libWinVirtualDesktop.DesktopManagerInternalGetAdjacentDesktop(self.id, 3)
-        if desktop_guid:
-            return Desktop(desktop_guid)
+        desktop_ids = pyWinVirtualDesktop.desktop_ids
+        index = desktop_ids.index(self.id)
+
+        if len(desktop_ids) - 1 > index > 0:
+            return Desktop(desktop_ids[index - 1])
 
     @property
     def desktop_to_right(self):
-        desktop_guid = libWinVirtualDesktop.DesktopManagerInternalGetAdjacentDesktop(self.id, 4)
-        if desktop_guid:
-            return Desktop(desktop_guid)
+        desktop_ids = pyWinVirtualDesktop.desktop_ids
+        index = desktop_ids.index(self.id)
+
+        if len(desktop_ids) - 2 > index > -1:
+            return Desktop(desktop_ids[index + 1])
 
     def add_window(self, window):
         if not isinstance(window, Window):

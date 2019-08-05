@@ -11,7 +11,7 @@ for desktop in pyWinVirtualDesktop:
     print('DESKTOP ID:', desktop.id)
     sys.stdout.flush()
     time.sleep(0.1)
-    
+
     desktop_to_left = desktop.desktop_to_left
     desktop_to_right = desktop.desktop_to_right
 
