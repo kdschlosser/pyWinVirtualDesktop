@@ -229,16 +229,21 @@ IVirtualDesktop* _GetDesktopFromStringId(char* guid) {
 
                 ::wcstombs_s(&count, pMBBuffer, (size_t)39, pWCBuffer, (size_t)39);
 
-                if (pMBBuffer == guid) {
-                    free(pMBBuffer);
-                    pObjectArray->Release();
-                    return pDesktop;
+                PyObject* pValue = Py_BuildValue("s", pMBBuffer);
 
-                }
                 if (pMBBuffer) {
                     free(pMBBuffer);
                 }
 
+                char* sGuid;
+
+                PyArg_Parse(pValue, "s", &sGuid)
+
+                if (sGuid == guid) {
+                    pObjectArray->Release();
+                    return pDesktop;
+
+                }
             }
             pDesktop->Release();
         }
@@ -937,7 +942,6 @@ static PyObject* DesktopManagerInternalSwitchDesktop(PyObject* self, PyObject* a
     desktop->Release();
     return Py_BuildValue("l", res);
 }
-
 
 
 static PyObject* DesktopManagerInternalCreateDesktop(PyObject* self) {
