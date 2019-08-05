@@ -2,13 +2,32 @@
 from __future__ import print_function
 import sys
 import six
-import libWinVirtualDesktop
+import traceback
+
+import libWinVirtualDesktop as _libWinVirtualDesktop
 from .winuser import (
     GetWindowText,
     IsWindow,
     GetProcessName,
     EnumWindows
 )
+
+
+class libWinVirtualDesktop(object):
+
+    def __getattr__(self, item):
+        func = getattr(_libWinVirtualDesktop, item)
+
+        def wrapper(*args, **kwargs):
+            try:
+                return func(*args, **kwargs)
+            except:
+                print(traceback.format_exc())
+
+        return wrapper
+
+
+libWinVirtualDesktop = libWinVirtualDesktop()
 
 
 class Module(object):
