@@ -873,7 +873,7 @@ static PyObject* DesktopManagerInternalGetDesktopIds(PyObject* self) {
 
 static PyObject* DesktopManagerInternalGetAdjacentDesktop(PyObject* self, PyObject* args) {
     char* sGuid;
-    int direction;
+    AdjacentDesktop direction;
     PyArg_ParseTuple(args, "si", &sGuid, &direction);
 
     IVirtualDesktop* desktop = _GetDesktopFromStringId(sGuid);
