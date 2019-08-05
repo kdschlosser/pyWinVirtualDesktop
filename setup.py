@@ -57,6 +57,7 @@ libWinVirtualDesktop = Extension(
         ('LIBWINVIRTUALDESKTOP_EXPORTS', 1),
     ],
     libraries=[
+        'Rpcrt4',
         'Ole32',
         'User32',
         msvc.environment.python.dependency[:-4]
