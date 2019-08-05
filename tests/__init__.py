@@ -3,11 +3,13 @@ from __future__ import print_function
 import time
 
 print('Importing pyWinVirtualDesktop')
-time.sleep(0.1)
+time.sleep(2.0)
 
 import pyWinVirtualDesktop
 
 print('Import done!')
+time.sleep(2.0)
+
 import sys
 appveyor_window = None
 

@@ -55,8 +55,6 @@ test_script:
       # Run the project tests
       # python -m pip install nose
       # nosetests --verbose tests
-      # python pyWinVirtualDesktop\iids.py
-      python pyWinVirtualDesktop\winuser.py
       python tests\__init__.py
 
 #artifacts:
