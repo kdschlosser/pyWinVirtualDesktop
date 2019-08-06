@@ -262,3 +262,8 @@ class TestpyWinVirtualDesktop(unittest.TestCase):
     def test_999_end_test(self):
         TestpyWinVirtualDesktop.window.destroy()
         TestpyWinVirtualDesktop.desktop.destroy()
+
+
+if __name__ == '__main__':
+    sys.argv.append('-v')
+    unittest.main()
