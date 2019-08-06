@@ -6,7 +6,7 @@ import os
 import unittest
 import threading
 import ctypes
-from ctypes.wintypes import BOOL, LPARAM, INT, HWND, DWORD, HANDLE, UINT
+from ctypes.wintypes import BOOL, LPARAM, WPARAM, INT, HWND, DWORD, HANDLE, UINT
 
 
 BASE_PATH = os.path.dirname(__file__)
@@ -20,9 +20,20 @@ MB_OK = 0x00000000
 PROCESS_QUERY_INFORMATION = 0x0400
 MAX_PATH = 260
 NULL = None
+WM_CLOSE = 0x0010
+
 
 user32 = ctypes.windll.User32
 kernel32 = ctypes.windll.Kernel32
+
+# BOOL PostMessageW(
+#   HWND   hWnd,
+#   UINT   Msg,
+#   WPARAM wParam,
+#   LPARAM lParam
+# );
+_PostMessage = user32.PostMessageW
+_PostMessage.restype = BOOL
 
 # int MessageBox(
 #   HWND    hWnd,
@@ -157,6 +168,24 @@ def MessageBox():
     threading.Thread(target=do).start()
 
 
+def PostMessage(hwnd, msg, wparam, lparam):
+    if not isinstance(wparam, WPARAM):
+        wparam = WPARAM(wparam)
+
+    if not isinstance(lparam, LPARAM):
+        lparam = LPARAM(lparam)
+
+    return _PostMessage(hwnd, msg, wparam, lparam)
+
+
+def Close():
+    for hwnd in EnumWindows():
+        if GetWindowText(hwnd) == 'UNITTESTS':
+            PostMessage(hwnd, WM_CLOSE, 0, 0)
+            break
+
+
+
 pyWinVirtualDesktop = None
 
 
@@ -281,7 +310,7 @@ class TestpyWinVirtualDesktop(unittest.TestCase):
 
 
     def test_999_end_test(self):
-        TestpyWinVirtualDesktop.window.destroy()
+        Close()
         TestpyWinVirtualDesktop.desktop.destroy()
 
 
