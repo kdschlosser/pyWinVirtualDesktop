@@ -44,11 +44,7 @@ install:
 
 
 build_script:
-  - cmd:  python setup.py bdist_egg bdist_wheel
-
-after_build:
-  - ps: $env:WHL = get-childitem dist\*.whl;
-  - cmd: python -m pip install %WHL%
+  - cmd:  python setup.py install bdist_egg bdist_wheel
 
 test_script:
  # - cmd: python -m pip install nose
