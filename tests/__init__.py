@@ -1,138 +1,269 @@
 # -*- coding: utf-8 -*-
+
 from __future__ import print_function
 import sys
-import time
+import os
+import unittest
+import threading
+import ctypes
+from ctypes.wintypes import BOOL, LPARAM, INT, HWND, DWORD, HANDLE, UINT
 
-import pyWinVirtualDesktop
 
-appveyor_window = None
+BASE_PATH = os.path.dirname(__file__)
 
-for desktop in pyWinVirtualDesktop:
-    print('DESKTOP ID:', desktop.id)
+if not BASE_PATH:
+    BASE_PATH = os.path.dirname(sys.argv[0])
 
-    desktop_to_left = desktop.desktop_to_left
-    desktop_to_right = desktop.desktop_to_right
+IMPORT_PATH = os.path.abspath(os.path.join(BASE_PATH, '..'))
 
-    if desktop_to_left is None:
-        print('DESKTOP TO LEFT: None')
-    else:
-        print('DESKTOP TO LEFT:', desktop_to_left.id)
+MB_OK = 0x00000000
+PROCESS_QUERY_INFORMATION = 0x0400
+MAX_PATH = 260
+NULL = None
 
-    if desktop_to_right is None:
-        print('DESKTOP TO RIGHT: None')
-    else:
-        print('DESKTOP TO RIGHT:', desktop_to_right.id)
+user32 = ctypes.windll.User32
+kernel32 = ctypes.windll.Kernel32
 
-    print('DESKTOP IS ACTIVE:', desktop.is_active)
+# int MessageBox(
+#   HWND    hWnd,
+#   LPCTSTR lpText,
+#   LPCTSTR lpCaption,
+#   UINT    uType
+# );
+_MessageBoxW = user32.MessageBoxW
+_MessageBoxW.restype = INT
 
-    print('DESKTOP WINDOWS:')
-    for window in desktop:
-        if sys.version_info[0] == 2:
-            if window.process_name == 'Appveyor.BuildAgent.Interactive.exe':
-                appveyor_window = window
+
+# BOOL CALLBACK EnumWindowsProc(
+#   _In_ HWND   hwnd,
+#   _In_ LPARAM lParam
+# );
+_EnumWindows = user32.EnumWindows
+_EnumWindows.restype = BOOL
+
+# BOOL IsWindow(
+#   HWND hWnd
+# );
+IsWindow = user32.IsWindow
+IsWindow.restype = BOOL
+
+# int GetWindowTextLengthW(
+#   HWND hWnd
+# );
+_GetWindowTextLength = user32.GetWindowTextLengthW
+_GetWindowTextLength.restype = INT
+
+# int GetWindowTextW(
+#   HWND   hWnd,
+#   LPWSTR lpString,
+#   int    nMaxCount
+# );
+_GetWindowText = user32.GetWindowTextW
+_GetWindowText.restype = INT
+
+# DWORD GetWindowThreadProcessId(
+#   HWND    hWnd,
+#   LPDWORD lpdwProcessId
+# );
+_GetWindowThreadProcessId = user32.GetWindowThreadProcessId
+_GetWindowThreadProcessId.restype = DWORD
+
+# HANDLE OpenProcess(
+#   DWORD dwDesiredAccess,
+#   BOOL  bInheritHandle,
+#   DWORD dwProcessId
+# );
+_OpenProcess = kernel32.OpenProcess
+_OpenProcess.restype = HANDLE
+
+# BOOL QueryFullProcessImageNameW(
+#   HANDLE hProcess,
+#   DWORD  dwFlags,
+#   LPWSTR lpExeName,
+#   PDWORD lpdwSize
+# );
+_QueryFullProcessImageName = kernel32.QueryFullProcessImageNameW
+_QueryFullProcessImageName.restype = BOOL
+
+
+WNDENUMPROC = ctypes.WINFUNCTYPE(BOOL, HWND, LPARAM)
+
+
+def EnumWindows():
+    windows = []
+
+    def callback(hwnd, lparam):
+        windows.append(hwnd)
+        return 1
+
+    lpEnumFunc = WNDENUMPROC(callback)
+    lParam = NULL
+
+    _EnumWindows(lpEnumFunc, lParam)
+
+    return windows
+
+
+def GetWindowText(hwnd):
+    if not isinstance(hwnd, HWND):
+        hwnd = HWND(hwnd)
+
+    nMaxCount = _GetWindowTextLength(hwnd) + 1
+    lpString = ctypes.create_unicode_buffer(nMaxCount)
+
+    _GetWindowText(hwnd, lpString, nMaxCount)
+
+    return lpString.value
+
+
+def GetProcessName(hwnd):
+    if not isinstance(hwnd, HWND):
+        hwnd = HWND(hwnd)
+
+    lpdwProcessId = DWORD()
+    _GetWindowThreadProcessId(hwnd, ctypes.byref(lpdwProcessId))
+
+    hProcess = _OpenProcess(
+        DWORD(PROCESS_QUERY_INFORMATION),
+        BOOL(False),
+        lpdwProcessId
+    )
+
+    lpdwSize = DWORD(MAX_PATH)
+    lpExeName = ctypes.create_string_buffer(MAX_PATH)
+
+    _QueryFullProcessImageName(
+        hProcess,
+        DWORD(0),
+        lpExeName,
+        ctypes.byref(lpdwSize)
+    )
+
+    res = str(lpExeName)
+
+    if res:
+        res = os.path.split(res)[-1]
+    return res
+
+
+def MessageBox():
+    def do():
+        hWnd = NULL
+        lpText = ctypes.create_unicode_buffer('UNITTESTS')
+        lpCaption = ctypes.create_unicode_buffer('UNITTESTS')
+        uType = UINT(MB_OK)
+        _MessageBoxW(hWnd, lpText, lpCaption, uType)
+
+    threading.Thread(target=do).start()
+
+
+pyWinVirtualDesktop = None
+
+
+class TestpyWinVirtualDesktop(unittest.TestCase):
+    desktop_ids = []
+    desktops = []
+    desktop = None
+    hwnds = []
+    windows = []
+    window = None
+
+    @classmethod
+    def tearDownClass(cls):
+        pass
+
+    @classmethod
+    def setUpClass(cls):
+        pass
+
+    def test_000_import(self):
+        sys.path.insert(0, IMPORT_PATH)
+        import pyWinVirtualDesktop as _pyWinVirtualDesktop
+        global pyWinVirtualDesktop
+
+        pyWinVirtualDesktop = _pyWinVirtualDesktop
+
+    def test_010_desktop_ids(self):
+        for id in pyWinVirtualDesktop.desktop_ids:
+            print(str(id))
+            TestpyWinVirtualDesktop.desktop_ids += [str(id)]
+
+    def test_020_enumerate_desktops(self):
+        for desktop in pyWinVirtualDesktop:
+            self.assertIn(str(desktop.id), TestpyWinVirtualDesktop.desktop_ids)
+            TestpyWinVirtualDesktop.desktops += [desktop]
+
+    def test_030_desktop_singleton(self):
+        for desktop in pyWinVirtualDesktop:
+            self.assertIn(desktop, TestpyWinVirtualDesktop.desktops)
+
+    def test_040_create_desktop(self):
+        desktop = pyWinVirtualDesktop.create_desktop()
+        desktop_ids = list(str(id) for id in pyWinVirtualDesktop.desktop_ids)
+
+        self.assertListEqual(
+            sorted(desktop_ids),
+            sorted(TestpyWinVirtualDesktop.desktop_ids + [desktop.id])
+        )
+
+        self.desktop = desktop
+
+    def test_050_get_active_desktop(self):
+        for desktop in pyWinVirtualDesktop:
+            if desktop.is_active:
+                break
         else:
-            if window.process_name == b'Appveyor.BuildAgent.Interactive.exe':
-                appveyor_window = window
+            self.fail()
 
-        print('    HANDLE:', window.id)
-        print('    CAPTION:', repr(window.text))
-        print('    PROCESS NAME:', repr(window.process_name))
-        print('    ON ACTIVE DESKTOP:', window.is_on_active_desktop)
-        print('\n')
+        self.assertEqual(desktop, TestpyWinVirtualDesktop.desktop)
 
+    def test_060_set_active_desktop(self):
+        TestpyWinVirtualDesktop.desktop.activate()
 
-if appveyor_window is not None:
-    print('FOUND APPVEYOR')
+        self.assertEqual(pyWinVirtualDesktop.current_desktop, TestpyWinVirtualDesktop.desktop)
 
-    new_desktop = pyWinVirtualDesktop.create_desktop()
-    print('NEW DESKTOP:', new_desktop.id)
-    print(pyWinVirtualDesktop.desktop_ids)
+    def test_300_enumerate_windows(self):
+        TestpyWinVirtualDesktop.hwnds = list(hwnd for hwnd in EnumWindows())
 
-    print('IS ACTIVE:', new_desktop.is_active)
+        for desktop in pyWinVirtualDesktop:
+            for window in desktop:
+                self.assertIn(window.id, TestpyWinVirtualDesktop.hwnds)
+                TestpyWinVirtualDesktop.windows += [window]
 
-    new_desktop.activate()
+    def test_310_window_singleton(self):
+        for desktop in pyWinVirtualDesktop:
+            for window in desktop:
+                self.assertIn(window, TestpyWinVirtualDesktop.windows)
 
-    print('IS ACTIVE:', new_desktop.is_active)
-
-    new_desktop.add_window(appveyor_window)
-
-    for desktop in pyWinVirtualDesktop:
-        if desktop != new_desktop:
-            desktop.activate()
-        print('DESKTOP ID:', desktop.id)
-
-        print('IS ACTIVE:', desktop.is_active)
-        print('DESKTOP NUMBER:', desktop.number)
-        print('DESKTOP NAME:', desktop.name)
-
-        desktop_to_left = desktop.desktop_to_left
-        desktop_to_right = desktop.desktop_to_right
-
-        if desktop_to_left is None:
-            print('DESKTOP TO LEFT: None')
+    def test_320_window_create_window(self):
+        MessageBox()
+        for desktop in pyWinVirtualDesktop:
+            for window in desktop:
+                if window.caption == 'UNITTESTS':
+                    TestpyWinVirtualDesktop.window = window
+                    break
         else:
-            print('DESKTOP TO LEFT:', desktop_to_left.id)
+            self.fail()
 
-        if desktop_to_right is None:
-            print('DESKTOP TO RIGHT: None')
+    def test_330_move_window(self):
+        for desktop in pyWinVirtualDesktop:
+            if not desktop.is_active:
+                desktop.add_window(TestpyWinVirtualDesktop.window)
+                self.assertEqual(TestpyWinVirtualDesktop.window.desktop, desktop)
+                break
         else:
-            print('DESKTOP TO RIGHT:', desktop_to_right.id)
+            self.fail()
 
-        for window in desktop:
-            print('    HANDLE:', window.id)
-            print('    CAPTION:', repr(window.text))
-            print('    PROCESS NAME:', repr(window.process_name))
-            print('    ON ACTIVE DESKTOP:', window.is_on_active_desktop)
-            print('\n')
+    def test_340_window_on_active_desktop(self):
+        self.assertEqual(TestpyWinVirtualDesktop.window.is_on_active_desktop, False)
+        self.window.desktop.activate()
+        self.assertEqual(TestpyWinVirtualDesktop.window.is_on_active_desktop, True)
 
-    # view = appveyor_window.view
-    #
-    # print('CAN RECEIVE INPUT:', view.can_receive_input)
-    # sys.stdout.flush()
-    #
-    # print('SCALE FACTOR:', view.scale_factor)
-    # sys.stdout.flush()
-    #
-    # print('SHOW IN SWITCHERS:', view.show_in_switchers)
-    # sys.stdout.flush()
-    #
-    # print('STATE:', view.state)
-    # sys.stdout.flush()
-    #
-    # print('SIZE:', view.size)
-    # sys.stdout.flush()
-    #
-    # print('POSITION:', view.position)
-    # sys.stdout.flush()
-    #
-    # print('IS VISIBLE:', view.is_visible)
-    # sys.stdout.flush()
-    #
-    # print('THUMBNAIL HANDLE:', view.thumbnail_handle)
-    # sys.stdout.flush()
-    #
-    # print('IS MIRRORED:', view.is_mirrored)
-    # sys.stdout.flush()
-    #
-    # print('SPLASH SCREEN:', view.is_splash_screen_presented)
-    # sys.stdout.flush()
-    #
-    # print('IS TRAY:', view.is_tray)
-    # sys.stdout.flush()
-    #
-    # print('HAS FOCUS:', view.has_focus)
-    # sys.stdout.flush()
-    #
-    # view.set_focus()
-    # print('HAS FOCUS:', view.has_focus)
-    # sys.stdout.flush()
-    #
-    # print('PINNED:', view.pinned)
-    # sys.stdout.flush()
-    #
-    # view.pinned = not view.pinned
-    # print('PINNED:', view.pinned)
-    # sys.stdout.flush()
-    #
-    # view.flash()
-    # view.activate()
+    def test_999_end_test(self):
+        TestpyWinVirtualDesktop.window.destroy()
+        TestpyWinVirtualDesktop.desktop.destroy()
+
+
+if __name__ == '__main__':
+    sys.argv.append('-v')
+    unittest.main()
