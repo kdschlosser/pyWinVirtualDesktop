@@ -276,6 +276,8 @@ class TestpyWinVirtualDesktop(unittest.TestCase):
 
     def test_320_window_create_window(self):
         MessageBox()
+        import time
+        time.sleep(1.0)
 
         for hwnd in EnumWindows():
             if GetWindowText(hwnd) == 'UNITTESTS':
