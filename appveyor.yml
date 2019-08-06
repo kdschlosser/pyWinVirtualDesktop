@@ -53,10 +53,10 @@ build_script:
 
 
 test_script:
- - cmd: python -m pip install nose
+ # - cmd: python -m pip install nose
  - ps: |
       # Run the project tests
-      nosetests --verbose tests
+      python tests/__init__.py
 
 artifacts:
   # Archive the wheel and agg in the ci.appveyor.com build report.

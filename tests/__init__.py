@@ -292,7 +292,7 @@ class TestpyWinVirtualDesktop(unittest.TestCase):
                 continue
 
             break
-            
+
         else:
             self.fail()
 
