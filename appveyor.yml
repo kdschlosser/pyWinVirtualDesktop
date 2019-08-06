@@ -47,10 +47,9 @@ build_script:
   - cmd:  python setup.py install bdist_egg bdist_wheel
 
 test_script:
- # - cmd: python -m pip install nose
- - ps: |
-      # Run the project tests
-      python tests/__init__.py
+  # - cmd: python -m pip install nose
+  # Run the project tests
+  - cmd: python tests/__init__.py -v
 
 artifacts:
   # Archive the wheel and agg in the ci.appveyor.com build report.
