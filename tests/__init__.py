@@ -274,12 +274,11 @@ class TestpyWinVirtualDesktop(unittest.TestCase):
 
     def test_320_window_create_window(self):
         MessageBox()
-        import time
-        time.sleep(1)
 
         for hwnd in EnumWindows():
             if GetWindowText(hwnd) == 'UNITTESTS':
-                pyWinVirtualDesktop.current_desktop.add_window(hwnd)
+                print('Found Unittests message box')
+                print(pyWinVirtualDesktop.current_desktop.add_window(hwnd))
                 break
 
         for desktop in pyWinVirtualDesktop:
