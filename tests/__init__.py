@@ -215,7 +215,6 @@ class TestpyWinVirtualDesktop(unittest.TestCase):
 
     def test_010_desktop_ids(self):
         for id in pyWinVirtualDesktop.desktop_ids:
-            print(str(id))
             desktop_ids.append(str(id))
 
     def test_020_enumerate_desktops(self):
@@ -278,8 +277,7 @@ class TestpyWinVirtualDesktop(unittest.TestCase):
 
         for hwnd in EnumWindows():
             if GetWindowText(hwnd) == 'UNITTESTS':
-                print('Found Unittests message box')
-                print(pyWinVirtualDesktop.current_desktop.add_window(hwnd))
+                pyWinVirtualDesktop.current_desktop.add_window(hwnd)
                 break
 
         for desktop in pyWinVirtualDesktop:
@@ -321,5 +319,4 @@ class TestpyWinVirtualDesktop(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    sys.argv.append('-v')
     unittest.main()
