@@ -247,9 +247,6 @@ class TestpyWinVirtualDesktop(unittest.TestCase):
         else:
             self.fail('No active desktop found.')
 
-        if desktop != new_desktop:
-            self.fail('Desktops do not match.')
-
     def test_060_set_active_desktop(self):
         new_desktop.activate()
 
@@ -291,6 +288,11 @@ class TestpyWinVirtualDesktop(unittest.TestCase):
                     global new_window
                     new_window = window
                     break
+            else:
+                continue
+
+            break
+            
         else:
             self.fail()
 
