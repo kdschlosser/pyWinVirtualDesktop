@@ -193,10 +193,10 @@ new_desktop = None
 hwnds = []
 windows = []
 new_window = None
+cookie = None
 
 
 class TestpyWinVirtualDesktop(unittest.TestCase):
-
 
     @classmethod
     def tearDownClass(cls):
@@ -210,8 +210,13 @@ class TestpyWinVirtualDesktop(unittest.TestCase):
         sys.path.insert(0, IMPORT_PATH)
         import pyWinVirtualDesktop as _pyWinVirtualDesktop
         global pyWinVirtualDesktop
+        global cookie
 
         pyWinVirtualDesktop = _pyWinVirtualDesktop
+
+        cookie = pyWinVirtualDesktop.register_notification_callback(
+            pyWinVirtualDesktop.DesktopNotificationCallback
+        )
 
     def test_010_desktop_ids(self):
         for id in pyWinVirtualDesktop.desktop_ids:
@@ -314,6 +319,7 @@ class TestpyWinVirtualDesktop(unittest.TestCase):
             self.fail()
 
     def test_999_end_test(self):
+        pyWinVirtualDesktop.unregister_notification_callback(cookie)
         Close()
         new_desktop.destroy()
 

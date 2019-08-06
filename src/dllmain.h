@@ -7,12 +7,12 @@
 
 #define string std::string
 
-#define VDA_VirtualDesktopCreated 5
-#define VDA_VirtualDesktopDestroyBegin 4
-#define VDA_VirtualDesktopDestroyFailed 3
-#define VDA_VirtualDesktopDestroyed 2
-#define VDA_ViewVirtualDesktopChanged 1
-#define VDA_CurrentVirtualDesktopChanged 0
+#define VirtualDesktopCreated 5
+#define VirtualDesktopDestroyBegin 4
+#define VirtualDesktopDestroyFailed 3
+#define VirtualDesktopDestroyed 2
+#define ViewVirtualDesktopChanged 1
+#define CurrentVirtualDesktopChanged 0
 
 #define VDA_IS_NORMAL 1
 #define VDA_IS_MINIMIZED 2
@@ -25,41 +25,11 @@ IVirtualDesktopManager *pDesktopManager = nullptr;
 IApplicationViewCollection *viewCollection = nullptr;
 IVirtualDesktopPinnedApps *pinnedApps = nullptr;
 IVirtualDesktopNotificationService* pDesktopNotificationService = nullptr;
-BOOL registeredForNotifications = FALSE;
 
+static PyObject *notificationCallback = NULL;
+BOOL registeredForNotifications = FALSE;
 DWORD idNotificationService = 0;
 
-struct TempWindowEntry {
-    HWND hwnd;
-    ULONGLONG lastActivationTimestamp;
-};
-
-
-struct ChangeDesktopAction {
-    GUID newDesktopGuid;
-    GUID oldDesktopGuid;
-};
-
-
-struct ShowWindowOnDesktopAction {
-    int desktopNumber;
-    int cmdShow;
-};
-
-
-
-// common functions
-/*
-HWND _ConvertPyHwndToHwnd(PyObject* pyHwnd) {
-    HWND hwnd;
-    if (PyInt_Check(pyHwnd)) {
-        hwnd = (HWND)(INT32) PyInt_AsLong(pyHwnd);
-    } else {
-        hwnd = 0;
-    }
-    return hwnd;
-}
-*/
 
 GUID _ConvertPyGuidToGuid(char* sGuid) {
     GUID guid = {0};
@@ -68,23 +38,29 @@ GUID _ConvertPyGuidToGuid(char* sGuid) {
     return guid;
 }
 
-
-static PyObject* _ConvertGuidToPyGuid(GUID guid) {
+char* _ConvertGuidToCString(GUID guid) {
     wchar_t* pWCBuffer;
     ::StringFromCLSID((const IID) guid, &pWCBuffer);
 
     size_t count;
-    char *pMBBuffer = (char *)malloc(39);
+    char* pMBBuffer = (char *)malloc(39);
 
     ::wcstombs_s(&count, pMBBuffer, (size_t)39, pWCBuffer, (size_t)39);
 
-    PyObject* res = Py_BuildValue("s", pMBBuffer);
+    char res[39] = {""};
+
+    strcpy_s(res, (size_t)39, pMBBuffer)
 
     if (pMBBuffer) {
         free(pMBBuffer);
     }
 
     return res;
+}
+
+
+static PyObject* _ConvertGuidToPyGuid(GUID guid) {
+   return Py_BuildValue("s", _ConvertGuidToCString(guid));
 }
 
 
@@ -191,6 +167,7 @@ GUID _GetDesktopIdFromNumber(int number) {
     return id;
 }
 
+
 IVirtualDesktop* _GetDesktopFromStringId(char* guid) {
     IObjectArray *pObjectArray = nullptr;
     HRESULT hr = pDesktopManagerInternal->GetDesktops(&pObjectArray);
@@ -292,22 +269,6 @@ IVirtualDesktop* _GetDesktop(GUID guid) {
     return desktop;
 }
 
-/*
-LPWSTR _GetApplicationIdFromHwnd(HWND hwnd) {
-    // TODO: This should not return a pointer, it should take in a pointer, or return either wstring or std::string
-
-    if (hwnd == 0)
-        return nullptr;
-    IApplicationView* app = _GetApplicationViewFromHwnd(hwnd);
-    if (app != nullptr) {
-        LPWSTR appId = new TCHAR[1024];
-        app->GetAppUserModelId(&appId);
-        app->Release();
-        return appId;
-    }
-    return nullptr;
-}
-*/
 
 // IApplicationView -------------------------------------------------
 
@@ -369,6 +330,7 @@ static PyObject* ApplicationViewSwitchTo(PyObject* self, PyObject* args) {
     return Py_BuildValue("i", 0);
 }
 
+
 static PyObject* ApplicationViewGetThumbnailWindow(PyObject* self, PyObject* args) {
     HWND hwnd;
     PyArg_ParseTuple(args, "l", &hwnd);
@@ -398,6 +360,7 @@ static PyObject* ApplicationViewGetVisibility(PyObject* self, PyObject* args) {
     return Py_BuildValue("i", -1);
 }
 
+
 static PyObject* ApplicationViewSetCloak(PyObject* self, PyObject* args) {
     HWND hwnd;
     APPLICATION_VIEW_CLOAK_TYPE cloakType;
@@ -413,6 +376,7 @@ static PyObject* ApplicationViewSetCloak(PyObject* self, PyObject* args) {
     view->Release();
     return Py_BuildValue("i", -1);
 }
+
 
 static PyObject* ApplicationViewGetExtendedFramePosition(PyObject* self, PyObject* args) {
     HWND hwnd;
@@ -498,7 +462,6 @@ static PyObject* ApplicationViewGetVirtualDesktopId(PyObject* self, PyObject* ar
 }
 
 
-
 static PyObject* ApplicationViewSetVirtualDesktopId(PyObject* self, PyObject* args) {
     HWND hwnd;
     char* sGuid;
@@ -540,6 +503,7 @@ static PyObject* ApplicationViewGetShowInSwitchers(PyObject* self, PyObject* arg
     return Py_BuildValue("i", -1);
 }
 
+
 static PyObject* ApplicationViewSetShowInSwitchers(PyObject* self, PyObject* args) {
     HWND hwnd;
     int switcher;
@@ -556,6 +520,7 @@ static PyObject* ApplicationViewSetShowInSwitchers(PyObject* self, PyObject* arg
     return Py_BuildValue("i", -1);
 }
 
+
 static PyObject* ApplicationViewGetScaleFactor(PyObject* self, PyObject* args) {
     HWND hwnd;
     PyArg_ParseTuple(args, "l", &hwnd);
@@ -570,6 +535,7 @@ static PyObject* ApplicationViewGetScaleFactor(PyObject* self, PyObject* args) {
     view->Release();
     return Py_BuildValue("i", -1);
 }
+
 
 static PyObject* ApplicationViewCanReceiveInput(PyObject* self, PyObject* args) {
     HWND hwnd;
@@ -619,7 +585,6 @@ static PyObject* ApplicationViewIsSplashScreenPresented(PyObject* self, PyObject
 }
 
 
-
 static PyObject* ApplicationViewFlash(PyObject* self, PyObject* args) {
     HWND hwnd;
     PyArg_ParseTuple(args, "l", &hwnd);
@@ -652,7 +617,6 @@ static PyObject* ApplicationViewIsMirrored(PyObject* self, PyObject* args) {
 }
 
 
-
 // IVirtualDesktopPinnedApps -------------------------------------------------
 static PyObject* DesktopPinnedAppsIsAppIdPinned(PyObject* self, PyObject* args) {
     char* appId;
@@ -663,6 +627,7 @@ static PyObject* DesktopPinnedAppsIsAppIdPinned(PyObject* self, PyObject* args) 
 
 }
 
+
 static PyObject* DesktopPinnedAppsPinAppID(PyObject* self, PyObject* args) {
     char* appId;
     PyArg_ParseTuple(args, "s", &appId);
@@ -672,6 +637,7 @@ static PyObject* DesktopPinnedAppsPinAppID(PyObject* self, PyObject* args) {
 
 }
 
+
 static PyObject* DesktopPinnedAppsUnpinAppID(PyObject* self, PyObject* args) {
     char* appId;
     PyArg_ParseTuple(args, "s", &appId);
@@ -680,6 +646,7 @@ static PyObject* DesktopPinnedAppsUnpinAppID(PyObject* self, PyObject* args) {
     return Py_BuildValue("i", res);
 
 }
+
 
 static PyObject* DesktopPinnedAppsIsViewPinned(PyObject* self, PyObject* args) {
     HWND hwnd;
@@ -696,6 +663,7 @@ static PyObject* DesktopPinnedAppsIsViewPinned(PyObject* self, PyObject* args) {
     return Py_BuildValue("i", -1);
 }
 
+
 static PyObject* DesktopPinnedAppsPinView(PyObject* self, PyObject* args) {
     HWND hwnd;
     PyArg_ParseTuple(args, "l", &hwnd);
@@ -711,6 +679,7 @@ static PyObject* DesktopPinnedAppsPinView(PyObject* self, PyObject* args) {
     return Py_BuildValue("i", -1);
 }
 
+
 static PyObject* DesktopPinnedAppsUnpinView(PyObject* self, PyObject* args) {
     HWND hwnd;
     PyArg_ParseTuple(args, "l", &hwnd);
@@ -725,19 +694,6 @@ static PyObject* DesktopPinnedAppsUnpinView(PyObject* self, PyObject* args) {
     view->Release();
     return Py_BuildValue("i", -1);
 }
-
-
-/*
-IApplicationViewCollection
-GetViews(&IObjectArray)
-GetViewsByZOrder(&IObjectArray)
-GetViewsByAppUserModelId(PCWSTR, &IObjectArray)
-GetViewForHwnd(HWND, &IApplicationView)
-GetViewForApplication(&IImmersiveApplication, &IApplicationView)
-GetViewForAppUserModelId(PCWSTR, &IApplicationView)
-GetViewInFocus(&IApplicationView)
-RefreshCollection()
-*/
 
 
 // IVirtualDesktop -----------------------------------------------------------
@@ -792,7 +748,6 @@ static PyObject* DesktopManagerInternalMoveViewToDesktop(PyObject* self, PyObjec
     desktop->Release();
     return Py_BuildValue("i", res);
 }
-
 
 
 static PyObject* DesktopManagerInternalCanViewMoveDesktops(PyObject* self, PyObject* args) {
@@ -1013,7 +968,6 @@ static PyObject* DesktopManagerMoveWindowToDesktop(PyObject* self, PyObject* arg
 
 // Misc Functions ------------------------------------------------
 
-
 static PyObject* GetCurrentDesktopNumber(PyObject* self) {
     IVirtualDesktop* desktop = nullptr;
 
@@ -1058,15 +1012,13 @@ static PyObject* GetDesktopIdFromNumber(PyObject* self, PyObject* args) {
 }
 
 
-
 // Notifications ------------------------------------
 
-
-
-void _PostMessageToListeners(int msgOffset, WPARAM wParam, LPARAM lParam) {
-    for each (std::pair<HWND, int> listener in listeners) {
-        PostMessage(listener.first, listener.second + msgOffset, wParam, lParam);
-    }
+void _PostMessageToListener(PyObject* args) {
+    if (notificationCallback != NULL) {
+        PyObject *pres;
+        pres = PyEval_CallObject(notificationCallback, args);
+        Py_DECREF(pres);
 }
 
 
@@ -1108,90 +1060,153 @@ public:
     }
     virtual HRESULT STDMETHODCALLTYPE VirtualDesktopCreated(IVirtualDesktop * pDesktop) override
     {
-        _PostMessageToListeners(VDA_VirtualDesktopCreated, _GetDesktopNumber(pDesktop), 0);
+        PyGILState_STATE state = PyGILState_Ensure();
+        GUID guid;
+        pDesktop->GetID(&guid);
+
+        char* sGuid = _ConvertGuidToCString(guid);
+        Py_Object* args = Py_BuildValue("is", VirtualDesktopCreated, sGuid);
+        _PostMessageToListener(args);
+        PyGILState_Release(state);
         return S_OK;
     }
     virtual HRESULT STDMETHODCALLTYPE VirtualDesktopDestroyBegin(IVirtualDesktop * pDesktopDestroyed, IVirtualDesktop * pDesktopFallback) override
     {
-        _PostMessageToListeners(VDA_VirtualDesktopDestroyBegin, _GetDesktopNumber(pDesktopDestroyed), _GetDesktopNumber(pDesktopFallback));
+        PyGILState_STATE state = PyGILState_Ensure();
+        GUID destroyedGuid;
+        GUID fallbackGuid;
+
+        pDesktopDestroyed->GetID(&destroyedGuid);
+        pDesktopFallback->GetID(&fallbackGuid);
+
+        char* sDestroyedGuid = _ConvertGuidToCString(destroyedGuid);
+        char* sFallbackGuid = _ConvertGuidToCString(fallbackGuid);
+
+        Py_Object* args = Py_BuildValue("iss", VirtualDesktopDestroyBegin, destroyedGuid, fallbackGuid);
+        _PostMessageToListener(args);
+        PyGILState_Release(state);
         return S_OK;
     }
     virtual HRESULT STDMETHODCALLTYPE VirtualDesktopDestroyFailed(IVirtualDesktop * pDesktopDestroyed, IVirtualDesktop * pDesktopFallback) override
     {
-        _PostMessageToListeners(VDA_VirtualDesktopDestroyFailed, _GetDesktopNumber(pDesktopDestroyed), _GetDesktopNumber(pDesktopFallback));
+        PyGILState_STATE state = PyGILState_Ensure();
+        GUID destroyedGuid;
+        GUID fallbackGuid;
+
+        pDesktopDestroyed->GetID(&destroyedGuid);
+        pDesktopFallback->GetID(&fallbackGuid);
+
+        char* sDestroyedGuid = _ConvertGuidToCString(destroyedGuid);
+        char* sFallbackGuid = _ConvertGuidToCString(fallbackGuid);
+
+        Py_Object* args = Py_BuildValue("iss", VirtualDesktopDestroyFailed, destroyedGuid, fallbackGuid);
+        _PostMessageToListener(args);
+        PyGILState_Release(state);
         return S_OK;
     }
     virtual HRESULT STDMETHODCALLTYPE VirtualDesktopDestroyed(IVirtualDesktop * pDesktopDestroyed, IVirtualDesktop * pDesktopFallback) override
     {
-        _PostMessageToListeners(VDA_VirtualDesktopDestroyed, _GetDesktopNumber(pDesktopDestroyed), _GetDesktopNumber(pDesktopFallback));
+        PyGILState_STATE state = PyGILState_Ensure();
+        GUID destroyedGuid;
+        GUID fallbackGuid;
+
+        pDesktopDestroyed->GetID(&destroyedGuid);
+        pDesktopFallback->GetID(&fallbackGuid);
+
+        char* sDestroyedGuid = _ConvertGuidToCString(destroyedGuid);
+        char* sFallbackGuid = _ConvertGuidToCString(fallbackGuid);
+
+        Py_Object* args = Py_BuildValue("iss", VirtualDesktopDestroyed, destroyedGuid, fallbackGuid);
+        _PostMessageToListener(args);
+        PyGILState_Release(state);
         return S_OK;
     }
     virtual HRESULT STDMETHODCALLTYPE ViewVirtualDesktopChanged(IApplicationView * pView) override
     {
-        _PostMessageToListeners(VDA_ViewVirtualDesktopChanged, 0, 0);
+        PyGILState_STATE state = PyGILState_Ensure();
+        GUID guid;
+        pView->GetVirtualDesktopId(&guid);
+
+        HWND thumbnailHwnd;
+        pView->GetThumbnailWindow(&thumbnailHwnd);
+
+        char* sGuid = _ConvertGuidToCString(guid);
+        Py_Object* args = Py_BuildValue("isi", ViewVirtualDesktopChanged, sGuid, thumbnailHwnd);
+        _PostMessageToListener(args);
+        PyGILState_Release(state);
         return S_OK;
     }
-    virtual HRESULT STDMETHODCALLTYPE CurrentVirtualDesktopChanged(
-        IVirtualDesktop *pDesktopOld,
-        IVirtualDesktop *pDesktopNew) override
+    virtual HRESULT STDMETHODCALLTYPE CurrentVirtualDesktopChanged(IVirtualDesktop *pDesktopOld, IVirtualDesktop *pDesktopNew) override
     {
+        PyGILState_STATE state = PyGILState_Ensure();
         viewCollection->RefreshCollection();
-        ChangeDesktopAction act;
-        if (pDesktopOld != nullptr) {
-            pDesktopOld->GetID(&act.oldDesktopGuid);
-        }
-        if (pDesktopNew != nullptr) {
-            pDesktopNew->GetID(&act.newDesktopGuid);
+        GUID oldGuid = {0};
+        GUID newGuid = {0};
+        char* sOldGuid;
+        char* sNewGuid;
+
+
+        if (pDesktopOld == nullptr) {
+            sOldGuid = {""};
+        } else {
+            pDesktopOld->GetID(&oldGuid);
+            sOldGuid = _ConvertGuidToCString(oldGuid);
         }
 
-        _PostMessageToListeners(VDA_CurrentVirtualDesktopChanged, _GetDesktopNumberFromId(act.oldDesktopGuid), _GetDesktopNumberFromId(act.newDesktopGuid));
+        if (pDesktopNew == nullptr) {
+            sNewGuid = {""};
+        } else {
+            pDesktopNew->GetID(&newGuid);
+            sNewGuid = _ConvertGuidToCString(newGuid);
+        }
+
+        Py_Object* args = Py_BuildValue("iss", CurrentVirtualDesktopChanged, sOldGuid, sNewGuid);
+        _PostMessageToListener(args);
+        PyGILState_Release(state);
         return S_OK;
     }
 };
 
-void _RegisterDesktopNotifications() {
-    if (pDesktopNotificationService == nullptr) {
-        return;
+
+static PyObject *RegisterDesktopNotifications(PyObject *self, PyObject *args) {
+
+    if (!registeredForNotifications) {
+        _Notifications *nf = new _Notifications();
+        HRESULT res = pDesktopNotificationService->Register(nf, &idNotificationService);
+
+        if (SUCCEEDED(res)) {
+            registeredForNotifications = TRUE;
+        }
     }
+
+    Py_XDECREF(notificationCallback);
+    PyArg_Parse(args, "O", &notificationCallback);
+    Py_INCREF(notificationCallback);
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+
+static PyObject *UnregisterDesktopNotifications(PyObject *self) {
     if (registeredForNotifications) {
-        return;
-    }
-
-    // TODO: This is never deleted
-    _Notifications *nf = new _Notifications();
-    HRESULT res = pDesktopNotificationService->Register(nf, &idNotificationService);
-    if (SUCCEEDED(res)) {
-        registeredForNotifications = TRUE;
-    }
-}
-
-
-void RegisterPostMessageHook(HWND listener, int messageOffset) {
-    listeners.insert(std::pair<HWND, int>(listener, messageOffset));
-    if (listeners.size() != 1) {
-        return;
-    }
-    _RegisterDesktopNotifications();
-}
-
-void UnregisterPostMessageHook(HWND hwnd) {
-    listeners.erase(hwnd);
-    if (listeners.size() != 0) {
-        return;
-    }
-
-    if (pDesktopNotificationService == nullptr) {
-        return;
-    }
-
-    if (idNotificationService > 0) {
-        registeredForNotifications = TRUE;
         pDesktopNotificationService->Unregister(idNotificationService);
+        registeredForNotifications = False;
     }
+
+    Py_XDECREF(notificationCallback);
+    notificationCallback = NULL;
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 
 // Module definitions ----------------------------------------------------
+
+static PyObject* error_out(PyObject *m) {
+    struct module_state *st = GETSTATE(m);
+    PyErr_SetString(st->error, "something bad happened");
+    return NULL;
+}
 
 struct module_state {
     PyObject *error;
@@ -1205,12 +1220,6 @@ struct module_state {
 static struct module_state _state;
 #endif
 
-
-static PyObject* error_out(PyObject *m) {
-    struct module_state *st = GETSTATE(m);
-    PyErr_SetString(st->error, "something bad happened");
-    return NULL;
-}
 
 
 static PyMethodDef module_methods[] = {
@@ -1255,9 +1264,10 @@ static PyMethodDef module_methods[] = {
     {"GetDesktopNumberFromId", (PyCFunction)GetDesktopNumberFromId, METH_VARARGS, NULL},
     {"GetCurrentDesktopNumber", (PyCFunction)GetCurrentDesktopNumber, METH_NOARGS, NULL},
     {"GetDesktopIdFromNumber", (PyCFunction)GetDesktopIdFromNumber, METH_VARARGS, NULL},
+    {"RegisterDesktopNotifications", (PyCFunction)RegisterDesktopNotifications, METH_VARARGS, NULL},
+    {"UnregisterDesktopNotifications", (PyCFunction)UnregisterDesktopNotifications, METH_NOARGS, NULL},
     { NULL, NULL, 0, NULL }
 };
-
 
 #if PY_MAJOR_VERSION >= 3
 

@@ -4,6 +4,7 @@ import sys
 import six
 import traceback
 from .config import Config
+import uuid
 
 import libWinVirtualDesktop as _libWinVirtualDesktop
 from .winuser import (
@@ -33,6 +34,13 @@ from .winuser import (
     BringWindowToTop
 )
 
+VIRTUAL_DESKTOP_CREATED = 5
+VIRTUAL_DESKTOP_DESTROY_BEGIN = 4
+VIRTUAL_DESKTOP_DESTROY_FAILED = 3
+VIRTUAL_DESKTOP_DESTROYED = 2
+VIRTUAL_DESKTOP_VIEW_CHANGED = 1
+VIRTUAL_DESKTOP_CURRENT_CHANGED = 0
+
 
 class libWinVirtualDesktop(object):
 
@@ -60,7 +68,92 @@ class Module(object):
 
         self.Desktop = Desktop
         self.Window = Window
+        self.DesktopNotificationCallback = DesktopNotificationCallback
         self.config = Config
+        self.__callbacks = {}
+
+    def __notification_callback(self, notif_type, *args):
+        if notif_type == VIRTUAL_DESKTOP_CREATED:
+            desktop_id = args[0]
+            desktop = Desktop(desktop_id)
+            for callback in list(self.__callbacks.values())[:]:
+                callback.create(desktop)
+
+        elif notif_type == VIRTUAL_DESKTOP_DESTROY_BEGIN:
+            destroy_desktop_id, fallback_desktop_id = args
+
+            if destroy_desktop_id:
+                destroy_desktop = Desktop(destroy_desktop_id)
+            else:
+                destroy_desktop = None
+
+            if fallback_desktop_id:
+                fallback_desktop = Desktop(fallback_desktop_id)
+            else:
+                fallback_desktop = None
+
+            for callback in list(self.__callbacks.values())[:]:
+                callback.destroy_begin(destroy_desktop, fallback_desktop)
+
+        elif notif_type == VIRTUAL_DESKTOP_DESTROY_FAILED:
+            destroy_desktop_id, fallback_desktop_id = args
+
+            if destroy_desktop_id:
+                destroy_desktop = Desktop(destroy_desktop_id)
+            else:
+                destroy_desktop = None
+
+            if fallback_desktop_id:
+                fallback_desktop = Desktop(fallback_desktop_id)
+            else:
+                fallback_desktop = None
+
+            for callback in list(self.__callbacks.values())[:]:
+                callback.destroy_failed(destroy_desktop, fallback_desktop)
+
+        elif notif_type == VIRTUAL_DESKTOP_DESTROYED:
+            destroy_desktop_id, fallback_desktop_id = args
+
+            if destroy_desktop_id:
+                destroy_desktop = Desktop(destroy_desktop_id)
+            else:
+                destroy_desktop = None
+
+            if fallback_desktop_id:
+                fallback_desktop = Desktop(fallback_desktop_id)
+            else:
+                fallback_desktop = None
+
+            for callback in list(self.__callbacks.values())[:]:
+                callback.destroy(destroy_desktop, fallback_desktop)
+
+        elif notif_type == VIRTUAL_DESKTOP_VIEW_CHANGED:
+            desktop_id, thumbnail_handle = args
+            desktop = Desktop(desktop_id)
+            for window in desktop:
+                if window.view.thumbnail_handle == thumbnail_handle:
+                    break
+            else:
+                window = None
+
+            for callback in list(self.__callbacks.values())[:]:
+                callback.view_changed(desktop, window)
+
+        elif notif_type == VIRTUAL_DESKTOP_CURRENT_CHANGED:
+            old_desktop_id, new_desktop_id = args
+
+            if old_desktop_id:
+                old_desktop = Desktop(old_desktop_id)
+            else:
+                old_desktop = None
+
+            if new_desktop_id:
+                new_desktop = Desktop(new_desktop_id)
+            else:
+                new_desktop = None
+
+            for callback in list(self.__callbacks.values())[:]:
+                callback.change(old_desktop, new_desktop)
 
     @property
     def current_desktop(self):
@@ -96,8 +189,21 @@ class Module(object):
                     'VirtualDesktopNotificationCallback'
                 )
 
+        if not self.__callbacks:
+            libWinVirtualDesktop.RegisterDesktopNotifications(
+                self.__notification_callback
+            )
+
+        guid = uuid.uuid4()
+        self.__callbacks[guid] = callback
+        return guid
+
     def unregister_notification_callback(self, cookie):
-        pass
+        if cookie in self.__callbacks:
+            del self.__callbacks[cookie]
+
+        if not self.__callbacks:
+            libWinVirtualDesktop.UnregisterDesktopNotifications()
 
     def __contains__(self, desktop):
         if isinstance(desktop, Desktop):
@@ -571,13 +677,24 @@ class Desktop(object):
 class DesktopNotificationCallback(object):
 
     def change(self, old, new):
+
+        if old is None:
+            old_id = 'None'
+        else:
+            old_id = old.id
+
+        if new is None:
+            new_id = 'None'
+        else:
+            new_id = new.id
+
         print(
             'You need to override the '
             'VirtualDesktopNotificationCallback.change method to '
             'not see this message.'
         )
-        print('OLD:', old.id)
-        print('NEW:', new.id)
+        print('OLD:', old_id)
+        print('NEW:', new_id)
 
     def create(self, new):
         print(
@@ -588,99 +705,81 @@ class DesktopNotificationCallback(object):
         print('NEW:', new.id)
 
     def destroy_begin(self, destroyed, fallback):
+
+        if destroyed is None:
+            destroyed_id = 'None'
+        else:
+            destroyed_id = destroyed.id
+
+        if fallback is None:
+            fallback_id = 'None'
+        else:
+            fallback_id = fallback.id
+
         print(
             'You need to override the '
             'VirtualDesktopNotificationCallback.destroy_begin method to '
             'not see this message.'
         )
-        print('DESTROYED:', destroyed.id)
-        print('FALLBACK:', fallback.id)
+        print('DESTROYED:', destroyed_id)
+        print('FALLBACK:', fallback_id)
 
     def destroy_failed(self, destroyed, fallback):
+        if destroyed is None:
+            destroyed_id = 'None'
+        else:
+            destroyed_id = destroyed.id
+
+        if fallback is None:
+            fallback_id = 'None'
+        else:
+            fallback_id = fallback.id
+
         print(
             'You need to override the '
             'VirtualDesktopNotificationCallback.destroy_failed method to '
             'not see this message.'
         )
-        print('DESTROYED:', destroyed.id)
-        print('FALLBACK:', fallback.id)
+        print('DESTROYED:', destroyed_id)
+        print('FALLBACK:', fallback_id)
 
     def destroy(self, destroyed, fallback):
+        if destroyed is None:
+            destroyed_id = 'None'
+        else:
+            destroyed_id = destroyed.id
+
+        if fallback is None:
+            fallback_id = 'None'
+        else:
+            fallback_id = fallback.id
+
         print(
             'You need to override the '
             'VirtualDesktopNotificationCallback.destroyed method to '
             'not see this message.'
         )
-        print('DESTROYED:', destroyed.id)
-        print('FALLBACK:', fallback.id)
+        print('DESTROYED:', destroyed_id)
+        print('FALLBACK:', fallback_id)
 
-    def view_changed(self, view):
-        pass
+    def view_changed(self, desktop, window):
+        if window is None:
+            window_id = 'None'
+        else:
+            window_id = window.id
 
-
-S_OK = 0x00000000
-
-
-class VirtualDesktopNotification(object):
-
-    def __init__(self, callback):
-        self.__callback = callback
-
-    def CurrentVirtualDesktopChanged(self, pDesktopOld, pDesktopNew):
-        desktop_old = Desktop(pDesktopOld)
-
-        desktop_new = Desktop(pDesktopNew)
-
-        self.__callback.change(desktop_old, desktop_new)
-
-        return S_OK
-
-    def VirtualDesktopCreated(self, pDesktop):
-        desktop = Desktop(pDesktop)
-
-        self.__callback.create(desktop)
-
-        return S_OK
-
-    def VirtualDesktopDestroyBegin(self, pDesktopDestroyed, pDesktopFallback):
-        desktop_destroyed = Desktop(pDesktopDestroyed)
-        desktop_fallback = Desktop(pDesktopFallback)
-
-        self.__callback.destroy_begin(
-            desktop_destroyed,
-            desktop_fallback
+        print(
+            'You need to override the '
+            'VirtualDesktopNotificationCallback.view_changed method to '
+            'not see this message.'
         )
-
-        return S_OK
-
-    def VirtualDesktopDestroyFailed(self, pDesktopDestroyed, pDesktopFallback):
-        desktop_destroyed = Desktop(pDesktopDestroyed)
-        desktop_fallback = Desktop(pDesktopFallback)
-
-        self.__callback.destroy_failed(
-            desktop_destroyed,
-            desktop_fallback
-        )
-
-        return S_OK
-
-    def VirtualDesktopDestroyed(self, pDesktopDestroyed, pDesktopFallback):
-        desktop_destroyed = Desktop(pDesktopDestroyed)
-
-        desktop_fallback = Desktop(pDesktopFallback)
-
-        self.__callback.destroy(
-            desktop_destroyed,
-            desktop_fallback
-        )
-
-        return S_OK
-
-    def ViewVirtualDesktopChanged(self, pView):
-        return S_OK
+        print('DESKTOP:', desktop.id)
+        print('WINDOW:', window_id)
 
 
 desktop_ids = Module.desktop_ids
 
 pyWinVirtualDesktop = Module()
 create_desktop = pyWinVirtualDesktop.create_desktop
+register_notification_callback = pyWinVirtualDesktop.register_notification_callback
+unregister_notification_callback = pyWinVirtualDesktop.unregister_notification_callback
