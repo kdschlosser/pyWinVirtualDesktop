@@ -7,18 +7,17 @@
 
 #define string std::string
 
-#define VirtualDesktopCreated 5
-#define VirtualDesktopDestroyBegin 4
-#define VirtualDesktopDestroyFailed 3
-#define VirtualDesktopDestroyed 2
-#define ViewVirtualDesktopChanged 1
-#define CurrentVirtualDesktopChanged 0
+#define VIRTUAL_DESKTOP_CREATED 5
+#define VIRTUAL_DESKTOP_DESTROY_BEGIN 4
+#define VIRTUAL_DESKTOP_DESTROY_FAILED 3
+#define VIRTUAL_DESKTOP_DESTROYED 2
+#define VIRTUAL_DESKTOP_VIEW_CHANGED 1
+#define VIRTUAL_DESKTOP_CURRENT_CHANGED 0
 
 #define VDA_IS_NORMAL 1
 #define VDA_IS_MINIMIZED 2
 #define VDA_IS_MAXIMIZED 3
 
-std::map<HWND, int> listeners;
 IServiceProvider* pServiceProvider = nullptr;
 IVirtualDesktopManagerInternal *pDesktopManagerInternal = nullptr;
 IVirtualDesktopManager *pDesktopManager = nullptr;
@@ -26,7 +25,7 @@ IApplicationViewCollection *viewCollection = nullptr;
 IVirtualDesktopPinnedApps *pinnedApps = nullptr;
 IVirtualDesktopNotificationService* pDesktopNotificationService = nullptr;
 
-static PyObject *notificationCallback = NULL;
+static PyObject *notificationCallback = nullptr;
 BOOL registeredForNotifications = FALSE;
 DWORD idNotificationService = 0;
 
@@ -38,7 +37,7 @@ GUID _ConvertPyGuidToGuid(char* sGuid) {
     return guid;
 }
 
-char* _ConvertGuidToCString(GUID guid) {
+void _ConvertGuidToCString(GUID guid, char* res) {
     wchar_t* pWCBuffer;
     ::StringFromCLSID((const IID) guid, &pWCBuffer);
 
@@ -47,20 +46,18 @@ char* _ConvertGuidToCString(GUID guid) {
 
     ::wcstombs_s(&count, pMBBuffer, (size_t)39, pWCBuffer, (size_t)39);
 
-    char res[39] = {""};
-
-    strcpy_s(res, (size_t)39, pMBBuffer)
+    strcpy_s(res, (size_t)39, pMBBuffer);
 
     if (pMBBuffer) {
         free(pMBBuffer);
     }
-
-    return res;
 }
 
 
 static PyObject* _ConvertGuidToPyGuid(GUID guid) {
-   return Py_BuildValue("s", _ConvertGuidToCString(guid));
+    char res[39];
+    _ConvertGuidToCString(guid, res);
+    return Py_BuildValue("s", res);
 }
 
 
@@ -1015,12 +1012,12 @@ static PyObject* GetDesktopIdFromNumber(PyObject* self, PyObject* args) {
 // Notifications ------------------------------------
 
 void _PostMessageToListener(PyObject* args) {
-    if (notificationCallback != NULL) {
+    if (notificationCallback != nullptr) {
         PyObject *pres;
         pres = PyEval_CallObject(notificationCallback, args);
         Py_DECREF(pres);
+    }
 }
-
 
 
 class _Notifications : public IVirtualDesktopNotification {
@@ -1028,15 +1025,15 @@ private:
     ULONG _referenceCount;
 public:
     // Inherited via IVirtualDesktopNotification
-    virtual HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void ** ppvObject) override
-    {
+    virtual HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void ** ppvObject) override {
         // Always set out parameter to NULL, validating it first.
-        if (!ppvObject)
+        if (!ppvObject) {
             return E_INVALIDARG;
+        }
+
         *ppvObject = NULL;
 
-        if (riid == IID_IUnknown || riid == IID_IVirtualDesktopNotification)
-        {
+        if (riid == IID_IUnknown || riid == IID_IVirtualDesktopNotification) {
             // Increment the reference count and return the pointer.
             *ppvObject = (LPVOID)this;
             AddRef();
@@ -1044,33 +1041,34 @@ public:
         }
         return E_NOINTERFACE;
     }
-    virtual ULONG STDMETHODCALLTYPE AddRef() override
-    {
+
+    virtual ULONG STDMETHODCALLTYPE AddRef() override {
         return InterlockedIncrement(&_referenceCount);
     }
 
-    virtual ULONG STDMETHODCALLTYPE Release() override
-    {
+    virtual ULONG STDMETHODCALLTYPE Release() override {
         ULONG result = InterlockedDecrement(&_referenceCount);
-        if (result == 0)
-        {
+        if (result == 0) {
             delete this;
         }
         return 0;
     }
+
     virtual HRESULT STDMETHODCALLTYPE VirtualDesktopCreated(IVirtualDesktop * pDesktop) override
     {
         PyGILState_STATE state = PyGILState_Ensure();
         GUID guid;
         pDesktop->GetID(&guid);
+        char sGuid[39];
+        _ConvertGuidToCString(guid, sGuid);
 
-        char* sGuid = _ConvertGuidToCString(guid);
-        Py_Object* args = Py_BuildValue("is", VirtualDesktopCreated, sGuid);
+        PyObject* args = Py_BuildValue("is", VIRTUAL_DESKTOP_CREATED, sGuid);
         _PostMessageToListener(args);
         PyGILState_Release(state);
         return S_OK;
     }
-    virtual HRESULT STDMETHODCALLTYPE VirtualDesktopDestroyBegin(IVirtualDesktop * pDesktopDestroyed, IVirtualDesktop * pDesktopFallback) override
+
+    virtual HRESULT STDMETHODCALLTYPE VirtualDesktopDestroyBegin(IVirtualDesktop* pDesktopDestroyed, IVirtualDesktop* pDesktopFallback) override
     {
         PyGILState_STATE state = PyGILState_Ensure();
         GUID destroyedGuid;
@@ -1079,14 +1077,18 @@ public:
         pDesktopDestroyed->GetID(&destroyedGuid);
         pDesktopFallback->GetID(&fallbackGuid);
 
-        char* sDestroyedGuid = _ConvertGuidToCString(destroyedGuid);
-        char* sFallbackGuid = _ConvertGuidToCString(fallbackGuid);
+        char sDestroyedGuid[39];
+        _ConvertGuidToCString(destroyedGuid, sDestroyedGuid);
 
-        Py_Object* args = Py_BuildValue("iss", VirtualDesktopDestroyBegin, destroyedGuid, fallbackGuid);
+        char sFallbackGuid[39];
+        _ConvertGuidToCString(fallbackGuid, sFallbackGuid);
+
+        PyObject* args = Py_BuildValue("iss", VIRTUAL_DESKTOP_DESTROY_BEGIN, destroyedGuid, fallbackGuid);
         _PostMessageToListener(args);
         PyGILState_Release(state);
         return S_OK;
     }
+
     virtual HRESULT STDMETHODCALLTYPE VirtualDesktopDestroyFailed(IVirtualDesktop * pDesktopDestroyed, IVirtualDesktop * pDesktopFallback) override
     {
         PyGILState_STATE state = PyGILState_Ensure();
@@ -1096,14 +1098,18 @@ public:
         pDesktopDestroyed->GetID(&destroyedGuid);
         pDesktopFallback->GetID(&fallbackGuid);
 
-        char* sDestroyedGuid = _ConvertGuidToCString(destroyedGuid);
-        char* sFallbackGuid = _ConvertGuidToCString(fallbackGuid);
+        char sDestroyedGuid[39];
+        _ConvertGuidToCString(destroyedGuid, sDestroyedGuid);
 
-        Py_Object* args = Py_BuildValue("iss", VirtualDesktopDestroyFailed, destroyedGuid, fallbackGuid);
+        char sFallbackGuid[39];
+        _ConvertGuidToCString(fallbackGuid, sFallbackGuid);
+
+        PyObject* args = Py_BuildValue("iss", VIRTUAL_DESKTOP_DESTROY_FAILED, destroyedGuid, fallbackGuid);
         _PostMessageToListener(args);
         PyGILState_Release(state);
         return S_OK;
     }
+
     virtual HRESULT STDMETHODCALLTYPE VirtualDesktopDestroyed(IVirtualDesktop * pDesktopDestroyed, IVirtualDesktop * pDesktopFallback) override
     {
         PyGILState_STATE state = PyGILState_Ensure();
@@ -1113,14 +1119,18 @@ public:
         pDesktopDestroyed->GetID(&destroyedGuid);
         pDesktopFallback->GetID(&fallbackGuid);
 
-        char* sDestroyedGuid = _ConvertGuidToCString(destroyedGuid);
-        char* sFallbackGuid = _ConvertGuidToCString(fallbackGuid);
+        char sDestroyedGuid[39];
+        _ConvertGuidToCString(destroyedGuid, sDestroyedGuid);
 
-        Py_Object* args = Py_BuildValue("iss", VirtualDesktopDestroyed, destroyedGuid, fallbackGuid);
+        char sFallbackGuid[39];
+        _ConvertGuidToCString(fallbackGuid, sFallbackGuid);
+
+        PyObject* args = Py_BuildValue("iss", VIRTUAL_DESKTOP_DESTROYED, destroyedGuid, fallbackGuid);
         _PostMessageToListener(args);
         PyGILState_Release(state);
         return S_OK;
     }
+
     virtual HRESULT STDMETHODCALLTYPE ViewVirtualDesktopChanged(IApplicationView * pView) override
     {
         PyGILState_STATE state = PyGILState_Ensure();
@@ -1130,37 +1140,32 @@ public:
         HWND thumbnailHwnd;
         pView->GetThumbnailWindow(&thumbnailHwnd);
 
-        char* sGuid = _ConvertGuidToCString(guid);
-        Py_Object* args = Py_BuildValue("isi", ViewVirtualDesktopChanged, sGuid, thumbnailHwnd);
+        char sGuid[39];
+        _ConvertGuidToCString(guid, sGuid);
+
+        PyObject* args = Py_BuildValue("isi", VIRTUAL_DESKTOP_VIEW_CHANGED, sGuid, thumbnailHwnd);
         _PostMessageToListener(args);
         PyGILState_Release(state);
         return S_OK;
     }
+
     virtual HRESULT STDMETHODCALLTYPE CurrentVirtualDesktopChanged(IVirtualDesktop *pDesktopOld, IVirtualDesktop *pDesktopNew) override
     {
         PyGILState_STATE state = PyGILState_Ensure();
         viewCollection->RefreshCollection();
         GUID oldGuid = {0};
         GUID newGuid = {0};
-        char* sOldGuid;
-        char* sNewGuid;
 
+        pDesktopOld->GetID(&oldGuid);
+        pDesktopNew->GetID(&newGuid);
 
-        if (pDesktopOld == nullptr) {
-            sOldGuid = {""};
-        } else {
-            pDesktopOld->GetID(&oldGuid);
-            sOldGuid = _ConvertGuidToCString(oldGuid);
-        }
+        char sOldGuid[39];
+        _ConvertGuidToCString(oldGuid, sOldGuid);
 
-        if (pDesktopNew == nullptr) {
-            sNewGuid = {""};
-        } else {
-            pDesktopNew->GetID(&newGuid);
-            sNewGuid = _ConvertGuidToCString(newGuid);
-        }
+        char sNewGuid[39];
+        _ConvertGuidToCString(newGuid, sNewGuid);
 
-        Py_Object* args = Py_BuildValue("iss", CurrentVirtualDesktopChanged, sOldGuid, sNewGuid);
+        PyObject* args = Py_BuildValue("iss", VIRTUAL_DESKTOP_CURRENT_CHANGED, sOldGuid, sNewGuid);
         _PostMessageToListener(args);
         PyGILState_Release(state);
         return S_OK;
@@ -1190,23 +1195,17 @@ static PyObject *RegisterDesktopNotifications(PyObject *self, PyObject *args) {
 static PyObject *UnregisterDesktopNotifications(PyObject *self) {
     if (registeredForNotifications) {
         pDesktopNotificationService->Unregister(idNotificationService);
-        registeredForNotifications = False;
+        registeredForNotifications = FALSE;
     }
 
     Py_XDECREF(notificationCallback);
-    notificationCallback = NULL;
+    notificationCallback = nullptr;
     Py_INCREF(Py_None);
     return Py_None;
 }
 
 
 // Module definitions ----------------------------------------------------
-
-static PyObject* error_out(PyObject *m) {
-    struct module_state *st = GETSTATE(m);
-    PyErr_SetString(st->error, "something bad happened");
-    return NULL;
-}
 
 struct module_state {
     PyObject *error;

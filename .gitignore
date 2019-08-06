@@ -3,6 +3,8 @@ __pycache__/
 *.py[cod]
 *$py.class
 .idea
+src/.idea
+src/cmake-build-debug
 
 # C extensions
 *.so
