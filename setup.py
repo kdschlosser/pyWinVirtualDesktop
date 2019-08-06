@@ -24,6 +24,13 @@ with open(def_file, 'w') as f:
     f.write(def_template.format(exports=exports))
 
 
+if sys.maxint > 2**32:
+    macro = ('WIN64', 1)
+
+else:
+    macro = ('WIN32', 1)
+
+
 libWinVirtualDesktop = Extension(
     'libWinVirtualDesktop',
     sources=[
@@ -50,7 +57,7 @@ libWinVirtualDesktop = Extension(
         '/EHsc',
     ],
     define_macros=[
-        ('WIN64', 1),
+        macro,
         ('NDEBUG', 1),
         ('_WINDOWS', 1),
         ('_USRDLL', 1),

@@ -1466,5 +1466,6 @@ initlibWinVirtualDesktop(void)
 #endif
 }
 
-
+VOID _OpenDllWindow(HINSTANCE injModule) {
+}
 
