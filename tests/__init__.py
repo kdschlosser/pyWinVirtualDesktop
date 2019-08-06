@@ -187,15 +187,16 @@ def Close():
 
 
 pyWinVirtualDesktop = None
+desktop_ids = []
+desktops = []
+new_desktop = None
+hwnds = []
+windows = []
+new_window = None
 
 
 class TestpyWinVirtualDesktop(unittest.TestCase):
-    desktop_ids = []
-    desktops = []
-    desktop = None
-    hwnds = []
-    windows = []
-    window = None
+
 
     @classmethod
     def tearDownClass(cls):
@@ -215,27 +216,28 @@ class TestpyWinVirtualDesktop(unittest.TestCase):
     def test_010_desktop_ids(self):
         for id in pyWinVirtualDesktop.desktop_ids:
             print(str(id))
-            TestpyWinVirtualDesktop.desktop_ids += [str(id)]
+            desktop_ids.append(str(id))
 
     def test_020_enumerate_desktops(self):
         for desktop in pyWinVirtualDesktop:
-            if str(desktop.id) not in TestpyWinVirtualDesktop.desktop_ids:
+            if str(desktop.id) not in desktop_ids:
                 self.fail()
-            TestpyWinVirtualDesktop.desktops += [desktop]
+            desktops.append(desktop)
 
     def test_030_desktop_singleton(self):
         for desktop in pyWinVirtualDesktop:
-            if desktop not in TestpyWinVirtualDesktop.desktops:
+            if desktop not in desktops:
                 self.fail()
 
     def test_040_create_desktop(self):
         desktop = pyWinVirtualDesktop.create_desktop()
-        desktop_ids = list(str(id) for id in pyWinVirtualDesktop.desktop_ids)
+        desktop_guids = list(str(id) for id in pyWinVirtualDesktop.desktop_ids)
 
-        if sorted(desktop_ids) != sorted(TestpyWinVirtualDesktop.desktop_ids + [desktop.id]):
-            sys.exit(1)
+        if sorted(desktop_guids) != sorted(desktop_ids + [desktop.id]):
+            self.fail()
 
-        self.desktop = desktop
+        global new_desktop
+        new_desktop = desktop
 
     def test_050_get_active_desktop(self):
         for desktop in pyWinVirtualDesktop:
@@ -245,31 +247,31 @@ class TestpyWinVirtualDesktop(unittest.TestCase):
         else:
             self.fail('No active desktop found.')
 
-        if desktop != TestpyWinVirtualDesktop.desktop:
+        if desktop != new_desktop:
             self.fail('Desktops do not match.')
 
     def test_060_set_active_desktop(self):
-        print(TestpyWinVirtualDesktop.desktop.activate())
+        new_desktop.activate()
 
-        print(pyWinVirtualDesktop.current_desktop)
-        print(TestpyWinVirtualDesktop.desktop)
-        if TestpyWinVirtualDesktop.desktop != pyWinVirtualDesktop.current_desktop:
+        if new_desktop != pyWinVirtualDesktop.current_desktop:
             self.fail('Desktops do not match.')
 
     def test_300_enumerate_windows(self):
-        TestpyWinVirtualDesktop.hwnds = list(hwnd for hwnd in EnumWindows())
+        global hwnds
+
+        hwnds = list(hwnd for hwnd in EnumWindows())
 
         for desktop in pyWinVirtualDesktop:
             for window in desktop:
-                if window.id not in TestpyWinVirtualDesktop.hwnds:
+                if window.id not in hwnds:
                     self.fail()
 
-                TestpyWinVirtualDesktop.windows += [window]
+                windows.append(window)
 
     def test_310_window_singleton(self):
         for desktop in pyWinVirtualDesktop:
             for window in desktop:
-                if window not in TestpyWinVirtualDesktop.windows:
+                if window not in windows:
                     self.fail()
 
     def test_320_window_create_window(self):
@@ -284,7 +286,8 @@ class TestpyWinVirtualDesktop(unittest.TestCase):
         for desktop in pyWinVirtualDesktop:
             for window in desktop:
                 if window.caption == 'UNITTESTS':
-                    TestpyWinVirtualDesktop.window = window
+                    global new_window
+                    new_window = window
                     break
         else:
             self.fail()
@@ -292,25 +295,25 @@ class TestpyWinVirtualDesktop(unittest.TestCase):
     def test_330_move_window(self):
         for desktop in pyWinVirtualDesktop:
             if not desktop.is_active:
-                desktop.add_window(TestpyWinVirtualDesktop.window)
+                desktop.add_window(new_window)
 
-                if TestpyWinVirtualDesktop.window.desktop != desktop:
+                if new_window.desktop != desktop:
                     self.fail('Desktops do not match.')
                 break
         else:
             self.fail()
 
     def test_340_window_on_active_desktop(self):
-        if TestpyWinVirtualDesktop.window.is_on_active_desktop is not False:
-            self.fail()
-        self.window.desktop.activate()
-        if TestpyWinVirtualDesktop.window.is_on_active_desktop is not True:
+        if new_window.is_on_active_desktop is not False:
             self.fail()
 
+        new_window.desktop.activate()
+        if new_window.is_on_active_desktop is not True:
+            self.fail()
 
     def test_999_end_test(self):
         Close()
-        TestpyWinVirtualDesktop.desktop.destroy()
+        new_desktop.destroy()
 
 
 if __name__ == '__main__':
