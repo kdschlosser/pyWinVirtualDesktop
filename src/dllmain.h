@@ -55,7 +55,7 @@ void _ConvertGuidToCString(GUID guid, char* res) {
 
 
 static PyObject* _ConvertGuidToPyGuid(GUID guid) {
-    char res[39];
+    char res[39] = {""};
     _ConvertGuidToCString(guid, res);
     return Py_BuildValue("s", res);
 }
@@ -1059,7 +1059,7 @@ public:
         PyGILState_STATE state = PyGILState_Ensure();
         GUID guid;
         pDesktop->GetID(&guid);
-        char sGuid[39];
+        char sGuid[39] = {""};
         _ConvertGuidToCString(guid, sGuid);
 
         PyObject* args = Py_BuildValue("is", VIRTUAL_DESKTOP_CREATED, sGuid);
@@ -1077,10 +1077,10 @@ public:
         pDesktopDestroyed->GetID(&destroyedGuid);
         pDesktopFallback->GetID(&fallbackGuid);
 
-        char sDestroyedGuid[39];
+        char sDestroyedGuid[39] = {""};
         _ConvertGuidToCString(destroyedGuid, sDestroyedGuid);
 
-        char sFallbackGuid[39];
+        char sFallbackGuid[39] = {""};
         _ConvertGuidToCString(fallbackGuid, sFallbackGuid);
 
         PyObject* args = Py_BuildValue("iss", VIRTUAL_DESKTOP_DESTROY_BEGIN, destroyedGuid, fallbackGuid);
@@ -1098,10 +1098,10 @@ public:
         pDesktopDestroyed->GetID(&destroyedGuid);
         pDesktopFallback->GetID(&fallbackGuid);
 
-        char sDestroyedGuid[39];
+        char sDestroyedGuid[39] = {""};
         _ConvertGuidToCString(destroyedGuid, sDestroyedGuid);
 
-        char sFallbackGuid[39];
+        char sFallbackGuid[39] = {""};
         _ConvertGuidToCString(fallbackGuid, sFallbackGuid);
 
         PyObject* args = Py_BuildValue("iss", VIRTUAL_DESKTOP_DESTROY_FAILED, destroyedGuid, fallbackGuid);
@@ -1119,10 +1119,10 @@ public:
         pDesktopDestroyed->GetID(&destroyedGuid);
         pDesktopFallback->GetID(&fallbackGuid);
 
-        char sDestroyedGuid[39];
+        char sDestroyedGuid[39] = {""};
         _ConvertGuidToCString(destroyedGuid, sDestroyedGuid);
 
-        char sFallbackGuid[39];
+        char sFallbackGuid[39] = {""};
         _ConvertGuidToCString(fallbackGuid, sFallbackGuid);
 
         PyObject* args = Py_BuildValue("iss", VIRTUAL_DESKTOP_DESTROYED, destroyedGuid, fallbackGuid);
@@ -1140,7 +1140,7 @@ public:
         HWND thumbnailHwnd;
         pView->GetThumbnailWindow(&thumbnailHwnd);
 
-        char sGuid[39];
+        char sGuid[39] = {""};
         _ConvertGuidToCString(guid, sGuid);
 
         PyObject* args = Py_BuildValue("isi", VIRTUAL_DESKTOP_VIEW_CHANGED, sGuid, thumbnailHwnd);
@@ -1159,10 +1159,10 @@ public:
         pDesktopOld->GetID(&oldGuid);
         pDesktopNew->GetID(&newGuid);
 
-        char sOldGuid[39];
+        char sOldGuid[39] = {""};
         _ConvertGuidToCString(oldGuid, sOldGuid);
 
-        char sNewGuid[39];
+        char sNewGuid[39] = {""};
         _ConvertGuidToCString(newGuid, sNewGuid);
 
         PyObject* args = Py_BuildValue("iss", VIRTUAL_DESKTOP_CURRENT_CHANGED, sOldGuid, sNewGuid);
