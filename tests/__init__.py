@@ -287,7 +287,7 @@ class TestpyWinVirtualDesktop(unittest.TestCase):
 
         for desktop in pyWinVirtualDesktop:
             for window in desktop:
-                if window.caption == 'UNITTESTS':
+                if window.test == 'UNITTESTS':
                     global new_window
                     new_window = window
                     break
