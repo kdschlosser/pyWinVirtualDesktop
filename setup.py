@@ -24,7 +24,7 @@ with open(def_file, 'w') as f:
     f.write(def_template.format(exports=exports))
 
 
-if sys.maxint > 2**32:
+if sys.maxsize > 2**32:
     macro = ('WIN64', 1)
 
 else:
