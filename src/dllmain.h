@@ -1013,12 +1013,14 @@ static PyObject* GetDesktopIdFromNumber(PyObject* self, PyObject* args) {
 
 void _PostMessageToListener(PyObject* args) {
     if (notificationCallback != nullptr) {
-        PyObject *pres;
 
-        PyGILState_STATE state = PyGILState_Ensure();
-        pres = PyEval_CallObject(notificationCallback, args);
-        PyGILState_Release(state);
+        PyGILState_STATE gstate;
+        gstate = PyGILState_Ensure();
 
+        PyObject * pInstance = PyObject_CallObject(notificationCallback, args);
+
+
+        PyGILState_Release(gstate);
     }
 }
 
@@ -1167,30 +1169,36 @@ public:
 
 static PyObject *RegisterDesktopNotifications(PyObject *self, PyObject *args) {
 
-    if (!registeredForNotifications) {
-        _Notifications *nf = nullptr;
+    if (!registeredForNotifications)
+        _Notifications *nf = new _Notifications();
+
         HRESULT res = pDesktopNotificationService->Register(nf, &idNotificationService);
 
         if (!SUCCEEDED(res)) {
-            return Py_None;
+            return Py_BuildValue("i", -1);
          }
 
         PyArg_Parse(args, "O", &notificationCallback);
+        Py_INCREF(notificationCallback);
         registeredForNotifications = TRUE;
+
         return Py_BuildValue("i", res);
     }
-    return Py_None;
+    return Py_BuildValue("i", -1);
 }
 
 
 static PyObject *UnregisterDesktopNotifications(PyObject *self, PyObject *args) {
     if (registeredForNotifications) {
         pDesktopNotificationService->Unregister(idNotificationService);
+
         registeredForNotifications = FALSE;
+        Py_DECREF(notificationCallback);
+        notificationCallback = nullptr;
+        return Py_BuildValue("i", 1);
     }
 
-    notificationCallback = nullptr;
-    return Py_None;
+    return Py_BuildValue("i", 0);
 }
 
 
@@ -1448,6 +1456,10 @@ initlibWinVirtualDesktop(void)
     if (pDesktopNotificationService == nullptr) {
         PyErr_SetString(NotificationServiceError, "FATAL ERROR");
         INITERROR;
+    }
+
+    if (!PyEval_ThreadsInitialized()) {
+       PyEval_InitThreads();
     }
 
 #if PY_MAJOR_VERSION >= 3
