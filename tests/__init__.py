@@ -214,9 +214,9 @@ class TestpyWinVirtualDesktop(unittest.TestCase):
 
         pyWinVirtualDesktop = _pyWinVirtualDesktop
 
-        # cookie = pyWinVirtualDesktop.register_notification_callback(
-        #     pyWinVirtualDesktop.DesktopNotificationCallback
-        # )
+        cookie = pyWinVirtualDesktop.register_notification_callback(
+            pyWinVirtualDesktop.DesktopNotificationCallback
+        )
 
     def test_010_desktop_ids(self):
         for id in pyWinVirtualDesktop.desktop_ids:
