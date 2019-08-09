@@ -1011,15 +1011,18 @@ static PyObject* GetDesktopIdFromNumber(PyObject* self, PyObject* args) {
 
 // Notifications ------------------------------------
 
-void _PostMessageToListener(PyObject* args) {
+void _PostMessageToListener(void* args) {
     if (notificationCallback != nullptr) {
 
         PyGILState_STATE gstate;
         gstate = PyGILState_Ensure();
 
-        PyObject * pInstance = PyObject_CallObject(notificationCallback, args);
+        PyObject *arguments = (PyObject*)args;
 
-
+        PyObject * pInstance = PyObject_CallObject(notificationCallback, arguments);
+        Py_XDECREF(args);
+        Py_XDECREF(arguments);
+        Py_DECREF(pInstance);
         PyGILState_Release(gstate);
     }
 }
@@ -1066,7 +1069,7 @@ public:
         char sGuid[39] = {""};
         _ConvertGuidToCString(guid, sGuid);
 
-        PyObject* args = Py_BuildValue("is", VIRTUAL_DESKTOP_CREATED, sGuid);
+        PyObject* args = Py_BuildValue("(is)", VIRTUAL_DESKTOP_CREATED, sGuid);
         _PostMessageToListener(args);
         return S_OK;
     }
@@ -1085,7 +1088,7 @@ public:
         char sFallbackGuid[39] = {""};
         _ConvertGuidToCString(fallbackGuid, sFallbackGuid);
 
-        PyObject* args = Py_BuildValue("iss", VIRTUAL_DESKTOP_DESTROY_BEGIN, destroyedGuid, fallbackGuid);
+        PyObject* args = Py_BuildValue("(iss)", VIRTUAL_DESKTOP_DESTROY_BEGIN, destroyedGuid, fallbackGuid);
         _PostMessageToListener(args);
         return S_OK;
     }
@@ -1104,7 +1107,7 @@ public:
         char sFallbackGuid[39] = {""};
         _ConvertGuidToCString(fallbackGuid, sFallbackGuid);
 
-        PyObject* args = Py_BuildValue("iss", VIRTUAL_DESKTOP_DESTROY_FAILED, destroyedGuid, fallbackGuid);
+        PyObject* args = Py_BuildValue("(iss)", VIRTUAL_DESKTOP_DESTROY_FAILED, destroyedGuid, fallbackGuid);
         _PostMessageToListener(args);
         return S_OK;
     }
@@ -1123,7 +1126,7 @@ public:
         char sFallbackGuid[39] = {""};
         _ConvertGuidToCString(fallbackGuid, sFallbackGuid);
 
-        PyObject* args = Py_BuildValue("iss", VIRTUAL_DESKTOP_DESTROYED, destroyedGuid, fallbackGuid);
+        PyObject* args = Py_BuildValue("(iss)", VIRTUAL_DESKTOP_DESTROYED, destroyedGuid, fallbackGuid);
         _PostMessageToListener(args);
         return S_OK;
     }
@@ -1139,7 +1142,7 @@ public:
         char sGuid[39] = {""};
         _ConvertGuidToCString(guid, sGuid);
 
-        PyObject* args = Py_BuildValue("isi", VIRTUAL_DESKTOP_VIEW_CHANGED, sGuid, thumbnailHwnd);
+        PyObject* args = Py_BuildValue("(isi)", VIRTUAL_DESKTOP_VIEW_CHANGED, sGuid, thumbnailHwnd);
         _PostMessageToListener(args);
         return S_OK;
     }
@@ -1193,7 +1196,7 @@ static PyObject *UnregisterDesktopNotifications(PyObject *self, PyObject *args) 
         pDesktopNotificationService->Unregister(idNotificationService);
 
         registeredForNotifications = FALSE;
-        Py_DECREF(notificationCallback);
+        Py_XDECREF(notificationCallback);
         notificationCallback = nullptr;
         return Py_BuildValue("i", 1);
     }
