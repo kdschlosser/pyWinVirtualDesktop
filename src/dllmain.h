@@ -1014,8 +1014,11 @@ static PyObject* GetDesktopIdFromNumber(PyObject* self, PyObject* args) {
 void _PostMessageToListener(PyObject* args) {
     if (notificationCallback != nullptr) {
         PyObject *pres;
+
+        PyGILState_STATE state = PyGILState_Ensure();
         pres = PyEval_CallObject(notificationCallback, args);
-        Py_DECREF(pres);
+        PyGILState_Release(state);
+
     }
 }
 
@@ -1056,7 +1059,6 @@ public:
 
     virtual HRESULT STDMETHODCALLTYPE VirtualDesktopCreated(IVirtualDesktop * pDesktop) override
     {
-        PyGILState_STATE state = PyGILState_Ensure();
         GUID guid;
         pDesktop->GetID(&guid);
         char sGuid[39] = {""};
@@ -1064,13 +1066,11 @@ public:
 
         PyObject* args = Py_BuildValue("is", VIRTUAL_DESKTOP_CREATED, sGuid);
         _PostMessageToListener(args);
-        PyGILState_Release(state);
         return S_OK;
     }
 
     virtual HRESULT STDMETHODCALLTYPE VirtualDesktopDestroyBegin(IVirtualDesktop* pDesktopDestroyed, IVirtualDesktop* pDesktopFallback) override
     {
-        PyGILState_STATE state = PyGILState_Ensure();
         GUID destroyedGuid;
         GUID fallbackGuid;
 
@@ -1085,13 +1085,11 @@ public:
 
         PyObject* args = Py_BuildValue("iss", VIRTUAL_DESKTOP_DESTROY_BEGIN, destroyedGuid, fallbackGuid);
         _PostMessageToListener(args);
-        PyGILState_Release(state);
         return S_OK;
     }
 
     virtual HRESULT STDMETHODCALLTYPE VirtualDesktopDestroyFailed(IVirtualDesktop * pDesktopDestroyed, IVirtualDesktop * pDesktopFallback) override
     {
-        PyGILState_STATE state = PyGILState_Ensure();
         GUID destroyedGuid;
         GUID fallbackGuid;
 
@@ -1106,13 +1104,11 @@ public:
 
         PyObject* args = Py_BuildValue("iss", VIRTUAL_DESKTOP_DESTROY_FAILED, destroyedGuid, fallbackGuid);
         _PostMessageToListener(args);
-        PyGILState_Release(state);
         return S_OK;
     }
 
     virtual HRESULT STDMETHODCALLTYPE VirtualDesktopDestroyed(IVirtualDesktop * pDesktopDestroyed, IVirtualDesktop * pDesktopFallback) override
     {
-        PyGILState_STATE state = PyGILState_Ensure();
         GUID destroyedGuid;
         GUID fallbackGuid;
 
@@ -1127,13 +1123,11 @@ public:
 
         PyObject* args = Py_BuildValue("iss", VIRTUAL_DESKTOP_DESTROYED, destroyedGuid, fallbackGuid);
         _PostMessageToListener(args);
-        PyGILState_Release(state);
         return S_OK;
     }
 
     virtual HRESULT STDMETHODCALLTYPE ViewVirtualDesktopChanged(IApplicationView * pView) override
     {
-        PyGILState_STATE state = PyGILState_Ensure();
         GUID guid;
         pView->GetVirtualDesktopId(&guid);
 
@@ -1145,13 +1139,12 @@ public:
 
         PyObject* args = Py_BuildValue("isi", VIRTUAL_DESKTOP_VIEW_CHANGED, sGuid, thumbnailHwnd);
         _PostMessageToListener(args);
-        PyGILState_Release(state);
         return S_OK;
     }
 
     virtual HRESULT STDMETHODCALLTYPE CurrentVirtualDesktopChanged(IVirtualDesktop *pDesktopOld, IVirtualDesktop *pDesktopNew) override
     {
-        PyGILState_STATE state = PyGILState_Ensure();
+
         viewCollection->RefreshCollection();
         GUID oldGuid = {0};
         GUID newGuid = {0};
@@ -1167,7 +1160,6 @@ public:
 
         PyObject* args = Py_BuildValue("iss", VIRTUAL_DESKTOP_CURRENT_CHANGED, sOldGuid, sNewGuid);
         _PostMessageToListener(args);
-        PyGILState_Release(state);
         return S_OK;
     }
 };
@@ -1176,31 +1168,28 @@ public:
 static PyObject *RegisterDesktopNotifications(PyObject *self, PyObject *args) {
 
     if (!registeredForNotifications) {
-        _Notifications *nf = new _Notifications();
+        _Notifications *nf = nullptr;
         HRESULT res = pDesktopNotificationService->Register(nf, &idNotificationService);
 
-        if (SUCCEEDED(res)) {
-            registeredForNotifications = TRUE;
-        }
-    }
+        if (!SUCCEEDED(res)) {
+            return py_None;
+         }
 
-    Py_XDECREF(notificationCallback);
-    PyArg_Parse(args, "O", &notificationCallback);
-    Py_INCREF(notificationCallback);
-    Py_INCREF(Py_None);
+        PyArg_Parse(args, "O", &notificationCallback);
+        registeredForNotifications = TRUE;
+        return Py_BuildValue("i", res);
+    }
     return Py_None;
 }
 
 
-static PyObject *UnregisterDesktopNotifications(PyObject *self) {
+static PyObject *UnregisterDesktopNotifications(PyObject *self, PyObject *args) {
     if (registeredForNotifications) {
         pDesktopNotificationService->Unregister(idNotificationService);
         registeredForNotifications = FALSE;
     }
 
-    Py_XDECREF(notificationCallback);
     notificationCallback = nullptr;
-    Py_INCREF(Py_None);
     return Py_None;
 }
 
