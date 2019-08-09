@@ -1172,7 +1172,7 @@ static PyObject *RegisterDesktopNotifications(PyObject *self, PyObject *args) {
         HRESULT res = pDesktopNotificationService->Register(nf, &idNotificationService);
 
         if (!SUCCEEDED(res)) {
-            return py_None;
+            return Py_None;
          }
 
         PyArg_Parse(args, "O", &notificationCallback);
