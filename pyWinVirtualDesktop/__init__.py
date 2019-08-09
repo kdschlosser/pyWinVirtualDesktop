@@ -72,15 +72,16 @@ class Module(object):
         self.config = Config
         self.__callbacks = {}
 
-    def __notification_callback(self, notif_type, *args):
+    def __notification_callback(self, notif_type, arg1=None, arg2=None):
         if notif_type == VIRTUAL_DESKTOP_CREATED:
-            desktop_id = args[0]
+            desktop_id = arg1
             desktop = Desktop(desktop_id)
             for callback in list(self.__callbacks.values())[:]:
                 callback.create(desktop)
 
         elif notif_type == VIRTUAL_DESKTOP_DESTROY_BEGIN:
-            destroy_desktop_id, fallback_desktop_id = args
+            destroy_desktop_id = arg1
+            fallback_desktop_id = arg2
 
             if destroy_desktop_id:
                 destroy_desktop = Desktop(destroy_desktop_id)
@@ -96,7 +97,8 @@ class Module(object):
                 callback.destroy_begin(destroy_desktop, fallback_desktop)
 
         elif notif_type == VIRTUAL_DESKTOP_DESTROY_FAILED:
-            destroy_desktop_id, fallback_desktop_id = args
+            destroy_desktop_id = arg1
+            fallback_desktop_id = arg2
 
             if destroy_desktop_id:
                 destroy_desktop = Desktop(destroy_desktop_id)
@@ -112,7 +114,8 @@ class Module(object):
                 callback.destroy_failed(destroy_desktop, fallback_desktop)
 
         elif notif_type == VIRTUAL_DESKTOP_DESTROYED:
-            destroy_desktop_id, fallback_desktop_id = args
+            destroy_desktop_id = arg1
+            fallback_desktop_id = arg2
 
             if destroy_desktop_id:
                 destroy_desktop = Desktop(destroy_desktop_id)
@@ -128,7 +131,9 @@ class Module(object):
                 callback.destroy(destroy_desktop, fallback_desktop)
 
         elif notif_type == VIRTUAL_DESKTOP_VIEW_CHANGED:
-            desktop_id, thumbnail_handle = args
+            desktop_id = arg1
+            thumbnail_handle = arg2
+
             desktop = Desktop(desktop_id)
             for window in desktop:
                 if window.view.thumbnail_handle == thumbnail_handle:
@@ -140,7 +145,8 @@ class Module(object):
                 callback.view_changed(desktop, window)
 
         elif notif_type == VIRTUAL_DESKTOP_CURRENT_CHANGED:
-            old_desktop_id, new_desktop_id = args
+            old_desktop_id = arg1
+            new_desktop_id = arg2
 
             if old_desktop_id:
                 old_desktop = Desktop(old_desktop_id)
