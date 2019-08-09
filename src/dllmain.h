@@ -1169,7 +1169,7 @@ public:
 
 static PyObject *RegisterDesktopNotifications(PyObject *self, PyObject *args) {
 
-    if (!registeredForNotifications)
+    if (!registeredForNotifications) {
         _Notifications *nf = new _Notifications();
 
         HRESULT res = pDesktopNotificationService->Register(nf, &idNotificationService);
