@@ -210,13 +210,7 @@ class TestpyWinVirtualDesktop(unittest.TestCase):
         sys.path.insert(0, IMPORT_PATH)
         import pyWinVirtualDesktop as _pyWinVirtualDesktop
         global pyWinVirtualDesktop
-        global cookie
-
         pyWinVirtualDesktop = _pyWinVirtualDesktop
-
-        cookie = pyWinVirtualDesktop.register_notification_callback(
-            pyWinVirtualDesktop.DesktopNotificationCallback
-        )
 
     def test_010_desktop_ids(self):
         for id in pyWinVirtualDesktop.desktop_ids:
@@ -232,6 +226,58 @@ class TestpyWinVirtualDesktop(unittest.TestCase):
         for desktop in pyWinVirtualDesktop:
             if desktop not in desktops:
                 self.fail()
+
+    def test_031_notifications(self):
+
+        create_event = threading.Event()
+        change_event = threading.Event()
+        destroy_begin_event = threading.Event()
+        destroy_event = threading.Event()
+
+
+        class DesktopNotificationCallback(pyWinVirtualDesktop.DesktopNotificationCallback):
+
+            def change(self, old, new):
+                change_event.set()
+
+            def create(self, new):
+                create_event.set()
+
+            def destroy_begin(self, destroyed, fallback):
+                destroy_begin_event.set()
+
+            def destroy_failed(self, destroyed, fallback):
+                pass
+
+            def destroy(self, destroyed, fallback):
+                destroy_event.set()
+
+            def view_changed(self, desktop, window):
+                pass
+
+        cookie = pyWinVirtualDesktop.register_notification_callback(
+            DesktopNotificationCallback()
+        )
+
+        desktop = pyWinVirtualDesktop.create_desktop()
+        desktop.activate()
+        desktop.destroy()
+
+        create_event.wait(3.0)
+        change_event.wait(3.0)
+        destroy_begin_event.wait(3.0)
+        destroy_event.wait(3.0)
+
+        if not create_event.is_set():
+            self.fail('create')
+        if not change_event.is_set():
+            self.fail('change')
+        if not destroy_begin_event.is_set():
+            self.fail('destroy begin')
+        if not destroy_event.is_set():
+            self.fail('destroy')
+
+        pyWinVirtualDesktop.unregister_notification_callback(cookie)
 
     def test_040_create_desktop(self):
         desktop = pyWinVirtualDesktop.create_desktop()
@@ -319,7 +365,6 @@ class TestpyWinVirtualDesktop(unittest.TestCase):
             self.fail()
 
     def test_999_end_test(self):
-        pyWinVirtualDesktop.unregister_notification_callback(cookie)
         Close()
         new_desktop.destroy()
 
