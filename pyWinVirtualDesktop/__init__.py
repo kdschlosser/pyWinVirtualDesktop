@@ -72,71 +72,16 @@ class Module(object):
         self.config = Config
         self.__callbacks = {}
 
-    def __notification_callback(self, notif_type, arg1=None, arg2=None):
+    def __notification_callback(self, notif_type, desktop1_id, dekstop2_id, thumb_hwnd):
         if notif_type == VIRTUAL_DESKTOP_CREATED:
-            desktop_id = arg1
-            desktop = Desktop(desktop_id)
+            desktop = Desktop(desktop1_id)
             for callback in list(self.__callbacks.values())[:]:
                 callback.create(desktop)
 
-        elif notif_type == VIRTUAL_DESKTOP_DESTROY_BEGIN:
-            destroy_desktop_id = arg1
-            fallback_desktop_id = arg2
-
-            if destroy_desktop_id:
-                destroy_desktop = Desktop(destroy_desktop_id)
-            else:
-                destroy_desktop = None
-
-            if fallback_desktop_id:
-                fallback_desktop = Desktop(fallback_desktop_id)
-            else:
-                fallback_desktop = None
-
-            for callback in list(self.__callbacks.values())[:]:
-                callback.destroy_begin(destroy_desktop, fallback_desktop)
-
-        elif notif_type == VIRTUAL_DESKTOP_DESTROY_FAILED:
-            destroy_desktop_id = arg1
-            fallback_desktop_id = arg2
-
-            if destroy_desktop_id:
-                destroy_desktop = Desktop(destroy_desktop_id)
-            else:
-                destroy_desktop = None
-
-            if fallback_desktop_id:
-                fallback_desktop = Desktop(fallback_desktop_id)
-            else:
-                fallback_desktop = None
-
-            for callback in list(self.__callbacks.values())[:]:
-                callback.destroy_failed(destroy_desktop, fallback_desktop)
-
-        elif notif_type == VIRTUAL_DESKTOP_DESTROYED:
-            destroy_desktop_id = arg1
-            fallback_desktop_id = arg2
-
-            if destroy_desktop_id:
-                destroy_desktop = Desktop(destroy_desktop_id)
-            else:
-                destroy_desktop = None
-
-            if fallback_desktop_id:
-                fallback_desktop = Desktop(fallback_desktop_id)
-            else:
-                fallback_desktop = None
-
-            for callback in list(self.__callbacks.values())[:]:
-                callback.destroy(destroy_desktop, fallback_desktop)
-
         elif notif_type == VIRTUAL_DESKTOP_VIEW_CHANGED:
-            desktop_id = arg1
-            thumbnail_handle = arg2
-
-            desktop = Desktop(desktop_id)
+            desktop = Desktop(desktop1_id)
             for window in desktop:
-                if window.view.thumbnail_handle == thumbnail_handle:
+                if window.view.thumbnail_handle == thumb_hwnd:
                     break
             else:
                 window = None
@@ -144,22 +89,26 @@ class Module(object):
             for callback in list(self.__callbacks.values())[:]:
                 callback.view_changed(desktop, window)
 
-        elif notif_type == VIRTUAL_DESKTOP_CURRENT_CHANGED:
-            old_desktop_id = arg1
-            new_desktop_id = arg2
+        else:
+            mapping = {
+                VIRTUAL_DESKTOP_DESTROY_BEGIN: 'destroy_begin',
+                VIRTUAL_DESKTOP_DESTROY_FAILED: 'destroy_failed',
+                VIRTUAL_DESKTOP_DESTROYED: 'destroy',
+                VIRTUAL_DESKTOP_CURRENT_CHANGED: 'change'
+            }
 
-            if old_desktop_id:
-                old_desktop = Desktop(old_desktop_id)
+            if desktop1_id:
+                desktop1 = Desktop(desktop1_id)
             else:
-                old_desktop = None
+                desktop1 = None
 
-            if new_desktop_id:
-                new_desktop = Desktop(new_desktop_id)
+            if dekstop2_id:
+                desktop2 = Desktop(dekstop2_id)
             else:
-                new_desktop = None
+                desktop2 = None
 
             for callback in list(self.__callbacks.values())[:]:
-                callback.change(old_desktop, new_desktop)
+                getattr(callback, mapping[notif_type])(desktop1, desktop2)
 
     @property
     def current_desktop(self):

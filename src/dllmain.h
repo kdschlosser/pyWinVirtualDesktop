@@ -1011,20 +1011,64 @@ static PyObject* GetDesktopIdFromNumber(PyObject* self, PyObject* args) {
 
 // Notifications ------------------------------------
 
-void _PostMessageToListener(void* args) {
+void _PostMessageToListener(int notifType, IVirtualDesktop*  desktop1, IVirtualDesktop*  desktop2, IApplicationView* view) {
+    PyGILState_STATE gstate;
+    gstate = PyGILState_Ensure();
+    PyObject* args;
+
     if (notificationCallback != nullptr) {
 
-        PyGILState_STATE gstate;
-        gstate = PyGILState_Ensure();
+        if (notifType == VIRTUAL_DESKTOP_CREATED) {
+            GUID guid;
 
-        PyObject *arguments = (PyObject*)args;
+            desktop1->GetID(&guid);
+            char sGuid[39] = {""};
+            _ConvertGuidToCString(guid, sGuid);
 
-        PyObject * pInstance = PyObject_CallObject(notificationCallback, arguments);
-        Py_XDECREF(args);
-        Py_XDECREF(arguments);
+            args = Py_BuildValue("(issi)", notifType, sGuid, "", -1);
+        } else if (
+            (notifType == VIRTUAL_DESKTOP_DESTROY_BEGIN) ||
+            (notifType == VIRTUAL_DESKTOP_DESTROY_FAILED) ||
+            (notifType == VIRTUAL_DESKTOP_DESTROYED) ||
+            (notifType == VIRTUAL_DESKTOP_CURRENT_CHANGED)
+        ) {
+            GUID guid1;
+            GUID guid2;
+
+            desktop1->GetID(&guid1);
+            desktop2->GetID(&guid2);
+
+            char sGuid1[39] = {""};
+            _ConvertGuidToCString(guid1, sGuid1);
+
+            char sGuid2[39] = {""};
+            _ConvertGuidToCString(guid2, sGuid2);
+
+            args = Py_BuildValue("(issi)", notifType, sGuid1, sGuid2, -1);
+        } else if (notifType == VIRTUAL_DESKTOP_VIEW_CHANGED) {
+            GUID guid;
+            view->GetVirtualDesktopId(&guid);
+
+            HWND thumbnailHwnd;
+            view->GetThumbnailWindow(&thumbnailHwnd);
+
+            char sGuid[39] = {""};
+            _ConvertGuidToCString(guid, sGuid);
+
+            args = Py_BuildValue("(issi)", notifType, sGuid, "", thumbnailHwnd);
+
+        } else {
+            Py_DECREF(args);
+            PyGILState_Release(gstate);
+            return;
+        }
+
+        PyObject* pInstance = PyObject_CallObject(notificationCallback, args);
+        Py_DECREF(args);
         Py_DECREF(pInstance);
-        PyGILState_Release(gstate);
     }
+    PyGILState_Release(gstate);
+
 }
 
 
@@ -1064,86 +1108,56 @@ public:
 
     virtual HRESULT STDMETHODCALLTYPE VirtualDesktopCreated(IVirtualDesktop * pDesktop) override
     {
-        GUID guid;
-        pDesktop->GetID(&guid);
-        char sGuid[39] = {""};
-        _ConvertGuidToCString(guid, sGuid);
-
-        PyObject* args = Py_BuildValue("(is)", VIRTUAL_DESKTOP_CREATED, sGuid);
-        _PostMessageToListener(args);
+        _PostMessageToListener(
+            VIRTUAL_DESKTOP_CREATED,
+            pDesktop,
+            (IVirtualDesktop*)nullptr,
+            (IApplicationView*)nullptr
+        );
         return S_OK;
     }
 
     virtual HRESULT STDMETHODCALLTYPE VirtualDesktopDestroyBegin(IVirtualDesktop* pDesktopDestroyed, IVirtualDesktop* pDesktopFallback) override
     {
-        GUID destroyedGuid;
-        GUID fallbackGuid;
-
-        pDesktopDestroyed->GetID(&destroyedGuid);
-        pDesktopFallback->GetID(&fallbackGuid);
-
-        char sDestroyedGuid[39] = {""};
-        _ConvertGuidToCString(destroyedGuid, sDestroyedGuid);
-
-        char sFallbackGuid[39] = {""};
-        _ConvertGuidToCString(fallbackGuid, sFallbackGuid);
-
-        PyObject* args = Py_BuildValue("(iss)", VIRTUAL_DESKTOP_DESTROY_BEGIN, destroyedGuid, fallbackGuid);
-        _PostMessageToListener(args);
+        _PostMessageToListener(
+            VIRTUAL_DESKTOP_DESTROY_BEGIN,
+            pDesktopDestroyed,
+            pDesktopFallback,
+            (IApplicationView*)nullptr
+        );
         return S_OK;
     }
 
     virtual HRESULT STDMETHODCALLTYPE VirtualDesktopDestroyFailed(IVirtualDesktop * pDesktopDestroyed, IVirtualDesktop * pDesktopFallback) override
     {
-        GUID destroyedGuid;
-        GUID fallbackGuid;
-
-        pDesktopDestroyed->GetID(&destroyedGuid);
-        pDesktopFallback->GetID(&fallbackGuid);
-
-        char sDestroyedGuid[39] = {""};
-        _ConvertGuidToCString(destroyedGuid, sDestroyedGuid);
-
-        char sFallbackGuid[39] = {""};
-        _ConvertGuidToCString(fallbackGuid, sFallbackGuid);
-
-        PyObject* args = Py_BuildValue("(iss)", VIRTUAL_DESKTOP_DESTROY_FAILED, destroyedGuid, fallbackGuid);
-        _PostMessageToListener(args);
+        _PostMessageToListener(
+            VIRTUAL_DESKTOP_DESTROY_FAILED,
+            pDesktopDestroyed,
+            pDesktopFallback,
+            (IApplicationView*)nullptr
+        );
         return S_OK;
     }
 
     virtual HRESULT STDMETHODCALLTYPE VirtualDesktopDestroyed(IVirtualDesktop * pDesktopDestroyed, IVirtualDesktop * pDesktopFallback) override
     {
-        GUID destroyedGuid;
-        GUID fallbackGuid;
-
-        pDesktopDestroyed->GetID(&destroyedGuid);
-        pDesktopFallback->GetID(&fallbackGuid);
-
-        char sDestroyedGuid[39] = {""};
-        _ConvertGuidToCString(destroyedGuid, sDestroyedGuid);
-
-        char sFallbackGuid[39] = {""};
-        _ConvertGuidToCString(fallbackGuid, sFallbackGuid);
-
-        PyObject* args = Py_BuildValue("(iss)", VIRTUAL_DESKTOP_DESTROYED, destroyedGuid, fallbackGuid);
-        _PostMessageToListener(args);
+        _PostMessageToListener(
+            VIRTUAL_DESKTOP_DESTROYED,
+            pDesktopDestroyed,
+            pDesktopFallback,
+            (IApplicationView*)nullptr
+        );
         return S_OK;
     }
 
     virtual HRESULT STDMETHODCALLTYPE ViewVirtualDesktopChanged(IApplicationView * pView) override
     {
-        GUID guid;
-        pView->GetVirtualDesktopId(&guid);
-
-        HWND thumbnailHwnd;
-        pView->GetThumbnailWindow(&thumbnailHwnd);
-
-        char sGuid[39] = {""};
-        _ConvertGuidToCString(guid, sGuid);
-
-        PyObject* args = Py_BuildValue("(isi)", VIRTUAL_DESKTOP_VIEW_CHANGED, sGuid, thumbnailHwnd);
-        _PostMessageToListener(args);
+        _PostMessageToListener(
+            VIRTUAL_DESKTOP_VIEW_CHANGED,
+            (IVirtualDesktop*)nullptr,
+            (IVirtualDesktop*)nullptr,
+            pView
+            );
         return S_OK;
     }
 
@@ -1151,20 +1165,7 @@ public:
     {
 
         viewCollection->RefreshCollection();
-        GUID oldGuid = {0};
-        GUID newGuid = {0};
-
-        pDesktopOld->GetID(&oldGuid);
-        pDesktopNew->GetID(&newGuid);
-
-        char sOldGuid[39] = {""};
-        _ConvertGuidToCString(oldGuid, sOldGuid);
-
-        char sNewGuid[39] = {""};
-        _ConvertGuidToCString(newGuid, sNewGuid);
-
-        PyObject* args = Py_BuildValue("iss", VIRTUAL_DESKTOP_CURRENT_CHANGED, sOldGuid, sNewGuid);
-        _PostMessageToListener(args);
+        _PostMessageToListener(VIRTUAL_DESKTOP_CURRENT_CHANGED, pDesktopOld, pDesktopNew, (IApplicationView*)nullptr);
         return S_OK;
     }
 };
@@ -1181,8 +1182,13 @@ static PyObject *RegisterDesktopNotifications(PyObject *self, PyObject *args) {
             return Py_BuildValue("i", -1);
          }
 
-        PyArg_Parse(args, "O", &notificationCallback);
-        Py_INCREF(notificationCallback);
+        PyObject *temp;
+
+        PyArg_Parse(args, "O", &temp);
+        Py_XINCREF(temp);
+        Py_XDECREF(notificationCallback);
+        notificationCallback = temp;
+
         registeredForNotifications = TRUE;
 
         return Py_BuildValue("i", res);
@@ -1195,6 +1201,7 @@ static PyObject *UnregisterDesktopNotifications(PyObject *self, PyObject *args) 
     if (registeredForNotifications) {
         pDesktopNotificationService->Unregister(idNotificationService);
 
+        delete idNotificationService;
         registeredForNotifications = FALSE;
         Py_XDECREF(notificationCallback);
         notificationCallback = nullptr;
